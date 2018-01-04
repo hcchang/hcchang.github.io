@@ -10,7 +10,7 @@
 <h1 style="color:blue;">OpenCV introduction</h1>
 
 <p>Computer vision OpenCV 範例的框架
-
+<br>
 ch1 影像存取相關範例 <br>
 
 ch2 滑鼠鍵盤介面的事件 <br>
@@ -32,15 +32,18 @@ ch8 機器學習相關  <br>
 
 <p>1-1打開相機
 <br>
+
 <p> #include &#60iostream&#62</p>
-<p> #include <opencv2/opencv.hpp></p>
-<p> #include <opencv2/highgui/highgui.hpp></p>
- 
+<p> #include &#60opencv2/opencv.hpp&#62</p>
+<p> #include &#60opencv2/highgui/highgui.hpp&#62</p>
+
+//說明 
+
  int main(int argc, char** argv)<br>
  {<br>
- 	cv::VideoCapture webCam(0);<br>
- 	if (!webCam.isOpened())<br>
- 		return -1;<br>
+ &#32&#32  cv::VideoCapture webCam(0);<br>
+ &#32&#32  if (!webCam.isOpened())<br>
+ &#32&#32  return -1;<br>
  
  	char key = 'i';<br>
  	cv::namedWindow("Image");<br>
