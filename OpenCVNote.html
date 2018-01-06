@@ -29,62 +29,23 @@
 <hr>
 
 
-<h1> <b>OpenCV 範例的框架</b></h1>
+<h4> <b>OpenCV 範例的框架</b></h4>
 <br>
-<h1>ch1 影像存取相關範例</h1> <br>
-<h1>ch2 滑鼠鍵盤介面的事件</h1> <br>
-
-<h1>ch3 二值影像處理</h1> <br>
-
-<h1>ch4 進階影像處理</h1> <br>
-
-<h1>ch5 關鍵點和描述子</h1> <br>
-
-<h1>ch6 追蹤相關</h1> <br>
-
-<h1>ch7 相機校正框架</h1> <br>
-
-<h1>ch8 機器學習相關</h1>  <br>
+<h4>ch1 影像存取相關範例</h4> <br>
+<h4>ch2 滑鼠鍵盤介面的事件</h4> <br>
+<h4>ch3 二值影像處理</h4> <br>
+<h4>ch4 進階影像處理</h4> <br>
+<h4>ch5 關鍵點和描述子</h4> <br>
+<h4>ch6 追蹤相關</h4> <br>
+<h4>ch7 相機校正框架</h4> <br>
+<h4>ch8 機器學習相關</h4>  <br>
 </p>
 <hr>
  
 
 <p>1-1打開相機
 <p>
-<img src='/1-1.jpg'  border='0'>
-
-
-<p> #include &#60iostream&#62<br>
-#include &#60opencv2/opencv.hpp&#62<br>
-#include &#60opencv2/highgui/highgui.hpp&#62<br>
-
-
-
- int main(int argc, char** argv)<br>
- {<br>
- &nbsp; &nbsp;  cv::VideoCapture webCam(0);  // 宣告OpenCV中管理相機的物件 <br> 
- &nbsp; &nbsp;&nbsp; &nbsp;  if (!webCam.isOpened())<br>
- &nbsp; &nbsp;&nbsp; &nbsp;  return -1;<br>
- 
- &nbsp; &nbsp;	char key = 'i';<br>
- &nbsp; &nbsp;	cv::namedWindow("Image");<br>
- 
- &nbsp; &nbsp;	while (key != 'o')<br>
- &nbsp; &nbsp;	{<br>
- &nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat imgFrame;<br>
- &nbsp; &nbsp;&nbsp; &nbsp;		webCam >> imgFrame;<br>
- 
- &nbsp; &nbsp;&nbsp; &nbsp;		cv::imshow("Image", imgFrame);<br>
- 		
- &nbsp; &nbsp;&nbsp; &nbsp;		key = cv::waitKey(30);<br>
- &nbsp; &nbsp;	}<br>
- 
- &nbsp; &nbsp;	return 0;<br>
- } </p>
-
-<p>1-1打開相機
-<p>
-<img src='/1-1.jpg'  border='0'>
+<img src='/1-1.bmp'  border='0'>
 
 
 <p> #include &#60iostream&#62<br>
@@ -128,32 +89,31 @@ int main(int argc, char** argv)<br>
 {<br>
 &nbsp; &nbsp;	cv::Mat img;<br>
 &nbsp; &nbsp;	img = cv::imread("lena.bmp");<br>
-
 &nbsp; &nbsp;	cv::namedWindow("Image");<br>
 
 &nbsp; &nbsp;	//顯示一些影像的特性
-&nbsp; &nbsp;	if (img.data)
-&nbsp; &nbsp;	{
-&nbsp; &nbsp;		std::cout << "影像的高: " << img.rows << std::endl;
-&nbsp; &nbsp;		std::cout << "影像的寬: " << img.cols << std::endl;
+&nbsp; &nbsp;	if (img.data) <br>
+&nbsp; &nbsp;	{ <br>
+&nbsp; &nbsp;		std::cout << "影像的高: " << img.rows << std::endl; <br>
+&nbsp; &nbsp;		std::cout << "影像的寬: " << img.cols << std::endl; <br>
 
-&nbsp; &nbsp;		//顯示影像
+&nbsp; &nbsp;		//顯示影像 <br>
 
-&nbsp; &nbsp;		cv::imshow("Image", img);
-&nbsp; &nbsp;		cv::waitKey(0);
+&nbsp; &nbsp;		cv::imshow("Image", img); <br>
+&nbsp; &nbsp;		cv::waitKey(0); <br>
 
-&nbsp; &nbsp;		//將影像存成不同的格式ex: jpg
-&nbsp; &nbsp;		cv::imwrite("out.jpg", img);
+&nbsp; &nbsp;		//將影像存成不同的格式ex: jpg   <br>
+&nbsp; &nbsp;		cv::imwrite("out.jpg", img); <br>
 
-&nbsp; &nbsp;	}
-&nbsp; &nbsp;	else
-&nbsp; &nbsp;	{
-&nbsp; &nbsp;		std::cout << "讀不到影像" << std::endl;
-&nbsp; &nbsp;		return -1;
-&nbsp; &nbsp;	}
+&nbsp; &nbsp;	} <br>
+&nbsp; &nbsp;	else <br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;		std::cout << "讀不到影像" << std::endl; <br>
+&nbsp; &nbsp;		return -1; <br>
+&nbsp; &nbsp;	} <br>
 
-&nbsp; &nbsp;	return 0;
-}
+&nbsp; &nbsp;	return 0; <br>
+} <br> </p>
 
 
 </body>
