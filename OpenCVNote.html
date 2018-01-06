@@ -49,10 +49,11 @@ ch8 機器學習相關  <br>
 <hr>
  
 
-<p>1-1打開相機
-<br>
+<h2>1-1打開相機
+</h2> <br>
+<img src='1-1.jpg'>
 
-<hr>
+
 <p> #include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
@@ -65,21 +66,21 @@ ch8 機器學習相關  <br>
  &nbsp; &nbsp;  if (!webCam.isOpened())<br>
  &nbsp; &nbsp;  return -1;<br>
  
- 	char key = 'i';<br>
- 	cv::namedWindow("Image");<br>
+ &nbsp; &nbsp;	char key = 'i';<br>
+ &nbsp; &nbsp;	cv::namedWindow("Image");<br>
  
- 	while (key != 'o')<br>
- 	{<br>
- 		cv::Mat imgFrame;<br>
- 		webCam >> imgFrame;<br>
+ &nbsp; &nbsp;	while (key != 'o')<br>
+ &nbsp; &nbsp;	{<br>
+ &nbsp; &nbsp;		cv::Mat imgFrame;<br>
+ &nbsp; &nbsp;		webCam >> imgFrame;<br>
  
- 		cv::imshow("Image", imgFrame);<br>
+ &nbsp; &nbsp;		cv::imshow("Image", imgFrame);<br>
  		
- 		key = cv::waitKey(30);<br>
- 	}<br>
+ &nbsp; &nbsp;		key = cv::waitKey(30);<br>
+ &nbsp; &nbsp;	}<br>
  
- 	return 0;<br>
- } </p>
+ &nbsp; &nbsp;	return 0;<br>
+ &nbsp; &nbsp;} </p>
 
 
 </body>
