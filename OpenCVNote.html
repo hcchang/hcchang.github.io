@@ -31,7 +31,12 @@
 
 <h4> <b>OpenCV 範例的框架</b></h4>
 <br>
+
 <h4>ch1 影像存取相關範例</h4> <br>
+<p>&nbsp; &nbsp; <a href="./OpenCV/1-1_OpenCamera.html"> 1-1打開相機</a>
+<br>
+   &nbsp; &nbsp; <a href="./OpenCV/1-2_LoadImageAndSave.html"> 1-2讀取影像並轉檔儲存</a>
+<br></p>
 <h4>ch2 滑鼠鍵盤介面的事件</h4> <br>
 <h4>ch3 二值影像處理</h4> <br>
 <h4>ch4 進階影像處理</h4> <br>
@@ -42,79 +47,5 @@
 </p>
 <hr>
  
-
-<p>1-1打開相機
-<p>
-<img src='/1-1.bmp'  border='0'>
-
-
-<p> #include &#60iostream&#62<br>
-#include &#60opencv2/opencv.hpp&#62<br>
-#include &#60opencv2/highgui/highgui.hpp&#62<br>
-
-
-
- int main(int argc, char** argv)<br>
- {<br>
- &nbsp; &nbsp;  cv::VideoCapture webCam(0);  // 宣告OpenCV中管理相機的物件 <br> 
- &nbsp; &nbsp;&nbsp; &nbsp;  if (!webCam.isOpened())<br>
- &nbsp; &nbsp;&nbsp; &nbsp;  return -1;<br>
- 
- &nbsp; &nbsp;	char key = 'i';<br>
- &nbsp; &nbsp;	cv::namedWindow("Image");<br>
- 
- &nbsp; &nbsp;	while (key != 'o')<br>
- &nbsp; &nbsp;	{<br>
- &nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat imgFrame;<br>
- &nbsp; &nbsp;&nbsp; &nbsp;		webCam >> imgFrame;<br>
- 
- &nbsp; &nbsp;&nbsp; &nbsp;		cv::imshow("Image", imgFrame);<br>
- 		
- &nbsp; &nbsp;&nbsp; &nbsp;		key = cv::waitKey(30);<br>
- &nbsp; &nbsp;	}<br>
- 
- &nbsp; &nbsp;	return 0;<br>
- } </p>
-
-
-<p>1-2讀取影像並轉檔儲存
-<p>
-
-
-<p> #include &#60iostream&#62<br>
-#include &#60opencv2/opencv.hpp&#62<br>
-#include &#60opencv2/highgui/highgui.hpp&#62<br>
-
-int main(int argc, char** argv)<br>
-{<br>
-&nbsp; &nbsp;	cv::Mat img;<br>
-&nbsp; &nbsp;	img = cv::imread("lena.bmp");<br>
-&nbsp; &nbsp;	cv::namedWindow("Image");<br>
-
-&nbsp; &nbsp;	//顯示一些影像的特性
-&nbsp; &nbsp;	if (img.data) <br>
-&nbsp; &nbsp;	{ <br>
-&nbsp; &nbsp;		std::cout << "影像的高: " << img.rows << std::endl; <br>
-&nbsp; &nbsp;		std::cout << "影像的寬: " << img.cols << std::endl; <br>
-
-&nbsp; &nbsp;		//顯示影像 <br>
-
-&nbsp; &nbsp;		cv::imshow("Image", img); <br>
-&nbsp; &nbsp;		cv::waitKey(0); <br>
-
-&nbsp; &nbsp;		//將影像存成不同的格式ex: jpg   <br>
-&nbsp; &nbsp;		cv::imwrite("out.jpg", img); <br>
-
-&nbsp; &nbsp;	} <br>
-&nbsp; &nbsp;	else <br>
-&nbsp; &nbsp;	{<br>
-&nbsp; &nbsp;		std::cout << "讀不到影像" << std::endl; <br>
-&nbsp; &nbsp;		return -1; <br>
-&nbsp; &nbsp;	} <br>
-
-&nbsp; &nbsp;	return 0; <br>
-} <br> </p>
-
-
 </body>
 </html>
