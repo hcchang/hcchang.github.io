@@ -2,55 +2,58 @@
 <html>
 	<head>   	
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>1-2_LoadImageAndSave</title>
+		<title>3-1_ImageBinaryThreshold</title>
   </head>
 
 <body>
 
-<h1 style="color:blue;">1-2讀取影像並轉檔儲存</h1>
+<h1 style="color:blue;">3-1門檻值的調整(二值化)</h1>
 
-<p>1-2讀取影像並轉檔儲存
+<p>3-1門檻值的調整(二值化)
 <p>
-
-
-<img src='/1-2.bmp'  border='0'>
 
 
 <p> #include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
+#include &#60vector&#62<br>                                                                               <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; int main(int argc, char** argv)                                                                 <br>
+&nbsp; &nbsp; {                                                                                               <br>
+&nbsp; &nbsp; 	cv::Mat img, imgResize;                                                                       <br>
+&nbsp; &nbsp; 	img = cv::imread("Image.jpg");                                                                <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; 	//顯示一些影像的特性                                                                          <br>
+&nbsp; &nbsp; 	if (img.data)                                                                                 <br>
+&nbsp; &nbsp; 	{                                                                                             <br>
+&nbsp; &nbsp; 		//將影像縮小四倍                                                                            <br>
+&nbsp; &nbsp; 		int width = img.cols;                                                                       <br>
+&nbsp; &nbsp; 		int height = img.rows;                                                                      <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; 		cv::resize(img, imgResize, cv::Size(width/4, height/4));                                    <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; 		//利用vector來儲存不同channel的值                                                           <br>
+&nbsp; &nbsp; 		std::vector<cv::Mat> splitImage;                                                            <br>
+&nbsp; &nbsp; 		//將影像的RGB分開                                                                           <br>
+&nbsp; &nbsp; 		cv::split(imgResize, splitImage);                                                           <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; 		cv::Mat dst;                                                                                <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; 		cv::threshold(splitImage[1], dst, 100, 255, cv::THRESH_BINARY); //大於100以上的亮度 給值255 <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; 		cv::imshow("Bchannel", splitImage[0]);                                                      <br>
+&nbsp; &nbsp; 		cv::imshow("Gchannel", splitImage[1]);                                                      <br>
+&nbsp; &nbsp; 		cv::imshow("Rchannel", splitImage[2]);                                                      <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; 		cv::imshow("BinaryImage", dst);                                                             <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; 		cv::waitKey(0);                                                                             <br>
+&nbsp; &nbsp;                                                                                                 <br>
+&nbsp; &nbsp; 	}                                                                                             <br>
+&nbsp; &nbsp; 	else                                                                                          <br>
+&nbsp; &nbsp; 	{                                                                                             <br>
+&nbsp; &nbsp; 		std::cout << "讀不到影像" << std::endl;                                                     <br>
 
-int main(int argc, char** argv)<br>
-{<br>
-&nbsp; &nbsp;	cv::Mat img;<br>
-&nbsp; &nbsp;	img = cv::imread("lena.bmp");<br>
-&nbsp; &nbsp;	cv::namedWindow("Image");<br>
-
-&nbsp; &nbsp;	//顯示一些影像的特性
-&nbsp; &nbsp;	if (img.data) <br>
-&nbsp; &nbsp;	{ <br>
-&nbsp; &nbsp;		std::cout << "影像的高: " << img.rows << std::endl; <br>
-&nbsp; &nbsp;		std::cout << "影像的寬: " << img.cols << std::endl; <br>
-
-&nbsp; &nbsp;		//顯示影像 <br>
-
-&nbsp; &nbsp;		cv::imshow("Image", img); <br>
-&nbsp; &nbsp;		cv::waitKey(0); <br>
-
-&nbsp; &nbsp;		//將影像存成不同的格式ex: jpg
-   <br>
-&nbsp; &nbsp;		cv::imwrite("out.jpg", img); <br>
-
-&nbsp; &nbsp;	} <br>
-&nbsp; &nbsp;	else <br>
-&nbsp; &nbsp;	{<br>
-&nbsp; &nbsp;		std::cout << "讀不到影像" << std::endl;
- <br>
-&nbsp; &nbsp;		return -1; <br>
-&nbsp; &nbsp;	} <br>
-
-&nbsp; &nbsp;	return 0; <br>
-} <br>
  </p>
 
 
