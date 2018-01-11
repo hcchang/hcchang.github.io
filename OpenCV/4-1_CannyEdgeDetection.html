@@ -2,14 +2,14 @@
 <html>
 	<head>   	
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>1-2_LoadImageAndSave</title>
+		<title>4-1_CannyEdgeDetection</title>
   </head>
 
 <body>
 
-<h1 style="color:blue;">1-2讀取影像並轉檔儲存</h1>
+<h1 style="color:blue;">4-1_Canny邊緣偵測器</h1>
 
-<p>1-2讀取影像並轉檔儲存
+<p>4-1_Canny邊緣偵測器
 <p>
 
 
@@ -22,24 +22,20 @@
 
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;	cv::Mat img;<br>
-&nbsp; &nbsp;	img = cv::imread("lena.bmp");<br>
-&nbsp; &nbsp;	cv::namedWindow("Image");<br>
+&nbsp; &nbsp;	cv::Mat img = cv::imread("Image.png");<br>
+&nbsp; &nbsp;	cv::Mat img_gray;<br>
+&nbsp; &nbsp;	cv::Mat img_canny;<br>
 
 &nbsp; &nbsp;	//顯示一些影像的特性
 &nbsp; &nbsp;	if (img.data) <br>
 &nbsp; &nbsp;	{ <br>
-&nbsp; &nbsp;		std::cout << "影像的高: " << img.rows << std::endl; <br>
-&nbsp; &nbsp;		std::cout << "影像的寬: " << img.cols << std::endl; <br>
+&nbsp; &nbsp;		cv::cvtColor(img,img_gray,CV_RGB2GRAY); <br>
+&nbsp; &nbsp;		cv::Canny(img_gray,img_canny,30,50,3,false); <br>
 
-&nbsp; &nbsp;		//顯示影像 <br>
 
-&nbsp; &nbsp;		cv::imshow("Image", img); <br>
+&nbsp; &nbsp;		cv::imshow("Canny", img_canny); <br>
 &nbsp; &nbsp;		cv::waitKey(0); <br>
 
-&nbsp; &nbsp;		//將影像存成不同的格式ex: jpg
-   <br>
-&nbsp; &nbsp;		cv::imwrite("out.jpg", img); <br>
 
 &nbsp; &nbsp;	} <br>
 &nbsp; &nbsp;	else <br>

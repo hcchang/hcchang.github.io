@@ -2,14 +2,14 @@
 <html>
 	<head>   	
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>1-2_LoadImageAndSave</title>
+		<title>2-1_TrackerBarExample</title>
   </head>
 
 <body>
 
-<h1 style="color:blue;">1-2讀取影像並轉檔儲存</h1>
+<h1 style="color:blue;">2-1創建TrackBar可調值</h1>
 
-<p>1-2讀取影像並轉檔儲存
+<p>2-1創建TrackBar可調值
 <p>
 
 
@@ -20,73 +20,73 @@
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
                                                                                                 <br>
-&nbsp; &nbsp; /// Global Variables                                                                                <br>
-&nbsp; &nbsp; const int r_slider_max = 100;                                                                       <br>
-&nbsp; &nbsp; const int g_slider_max = 100;                                                                       <br>
-&nbsp; &nbsp; const int b_slider_max = 100;                                                                       <br>
-&nbsp; &nbsp; int r_slider=50;                                                                                    <br>
-&nbsp; &nbsp; int g_slider=50;                                                                                    <br>
-&nbsp; &nbsp; int b_slider=50;                                                                                    <br>
+/// Global Variables                                                                                <br>
+const int r_slider_max = 100;                                                                       <br>
+const int g_slider_max = 100;                                                                       <br>
+const int b_slider_max = 100;                                                                       <br>
+int r_slider=50;                                                                                    <br>
+int g_slider=50;                                                                                    <br>
+int b_slider=50;                                                                                    <br>
+                                                                                                    <br>
+                                                                                                    <br>
+cv::Mat img;                                                                                        <br>
+cv::Mat imgResize;                                                                                  <br>
+cv::Mat imgOut;                                                                                     <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp; cv::Mat img;                                                                                        <br>
-&nbsp; &nbsp; cv::Mat imgResize;                                                                                  <br>
-&nbsp; &nbsp; cv::Mat imgOut;                                                                                     <br>
-&nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp; void on_trackbarR(int value, void*)                                                                 <br>
-&nbsp; &nbsp; {                                                                                                   <br>
+void on_trackbarR(int value, void*)                                                                 <br>
+{                                                                                                   <br>
 &nbsp; &nbsp; 	imgOut = imgOut.clone();                                                                          <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	int tmpValue = 0;                                                                                 <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	for (int i = 0; i < imgResize.rows; i++)                                                          <br>
 &nbsp; &nbsp; 	{                                                                                                 <br>
-&nbsp; &nbsp; 		for (int j = 0; j < imgResize.cols; j++)                                                        <br>
-&nbsp; &nbsp; 		{                                                                                               <br>
-&nbsp; &nbsp; 			tmpValue = (int)imgResize.at<cv::Vec3b>(i, j)[2] * (value) / 100;                             <br>
-&nbsp; &nbsp; 			imgOut.at<cv::Vec3b>(i, j)[2] = tmpValue;                                                     <br>
-&nbsp; &nbsp; 		}                                                                                               <br>
+&nbsp; &nbsp;&nbsp;&nbsp; 		for (int j = 0; j < imgResize.cols; j++)                                                        <br>
+&nbsp; &nbsp;&nbsp;&nbsp; 		{                                                                                               <br>
+&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; 			tmpValue = (int)imgResize.at<cv::Vec3b>(i, j)[2] * (value) / 100;                             <br>
+&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; 			imgOut.at<cv::Vec3b>(i, j)[2] = tmpValue;                                                     <br>
+&nbsp; &nbsp;&nbsp;&nbsp; 		}                                                                                               <br>
 &nbsp; &nbsp; 	}                                                                                                 <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	imshow("ImageRGBChannel", imgOut);                                                                <br>
 &nbsp; &nbsp; }                                                                                                   <br>
 &nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp; void on_trackbarG(int value, void*)                                                                 <br>
-&nbsp; &nbsp; {                                                                                                   <br>
+void on_trackbarG(int value, void*)                                                                 <br>
+{                                                                                                   <br>
 &nbsp; &nbsp; 	imgOut = imgOut.clone();                                                                          <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	int tmpValue = 0;                                                                                 <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	for (int i = 0; i < imgResize.rows; i++)                                                          <br>
 &nbsp; &nbsp; 	{                                                                                                 <br>
-&nbsp; &nbsp; 		for (int j = 0; j < imgResize.cols; j++)                                                        <br>
-&nbsp; &nbsp; 		{                                                                                               <br>
-&nbsp; &nbsp; 			tmpValue = (int)imgResize.at<cv::Vec3b>(i, j)[1] * (value) / 100;                             <br>
-&nbsp; &nbsp; 			imgOut.at<cv::Vec3b>(i, j)[1] = tmpValue;                                                     <br>
-&nbsp; &nbsp; 		}                                                                                               <br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		for (int j = 0; j < imgResize.cols; j++)                                                        <br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		{                                                                                               <br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 			tmpValue = (int)imgResize.at<cv::Vec3b>(i, j)[1] * (value) / 100;                             <br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 			imgOut.at<cv::Vec3b>(i, j)[1] = tmpValue;                                                     <br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		}                                                                                               <br>
 &nbsp; &nbsp; 	}                                                                                                 <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	imshow("ImageRGBChannel", imgOut);                                                                <br>
-&nbsp; &nbsp; }                                                                                                   <br>
+}                                                                                                   <br>
 &nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp; void on_trackbarB(int value, void*)                                                                 <br>
-&nbsp; &nbsp; {                                                                                                   <br>
+void on_trackbarB(int value, void*)                                                                 <br>
+{                                                                                                   <br>
 &nbsp; &nbsp; 	imgOut = imgOut.clone();                                                                          <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	int tmpValue = 0;                                                                                 <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	for (int i = 0; i < imgResize.rows; i++)                                                          <br>
 &nbsp; &nbsp; 	{                                                                                                 <br>
-&nbsp; &nbsp; 		for (int j = 0; j < imgResize.cols; j++)                                                        <br>
-&nbsp; &nbsp; 		{                                                                                               <br>
-&nbsp; &nbsp; 			tmpValue = (int)imgResize.at<cv::Vec3b>(i, j)[0] * (value) / 100;                             <br>
-&nbsp; &nbsp; 			imgOut.at<cv::Vec3b>(i, j)[0] = tmpValue;                                                     <br>
-&nbsp; &nbsp; 		}                                                                                               <br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		for (int j = 0; j < imgResize.cols; j++)                                                        <br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		{                                                                                               <br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 			tmpValue = (int)imgResize.at<cv::Vec3b>(i, j)[0] * (value) / 100;                             <br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 			imgOut.at<cv::Vec3b>(i, j)[0] = tmpValue;                                                     <br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		}                                                                                               <br>
 &nbsp; &nbsp; 	}                                                                                                 <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	imshow("ImageRGBChannel", imgOut);                                                                <br>
-&nbsp; &nbsp; }                                                                                                   <br>
+}                                                                                                   <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; int main(int argc, char** argv)                                                                     <br>
 &nbsp; &nbsp; {                                                                                                   <br>
