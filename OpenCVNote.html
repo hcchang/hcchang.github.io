@@ -10,8 +10,16 @@
 <h1 style="color:blue;">OpenCV introduction</h1>
 
 <p> OpenCV個強大的電腦視覺開源軟體，主要由底下模組組成 <br>
-<p> &nbsp; &nbsp; core    <br>
-    &nbsp; &nbsp; imgproc <br>
+<p> &nbsp; &nbsp; core:    <br>
+	&nbsp; &nbsp; &nbsp; &nbsp; 此模組包含: <br>
+	&nbsp; &nbsp; &nbsp; &nbsp;              基本的資料結構, cv::Size, cv::Point...<br>
+	&nbsp; &nbsp; &nbsp; &nbsp;              動態的資料結構, CvSeq, CvGraph...<br>
+	&nbsp; &nbsp; &nbsp; &nbsp;              矩陣的運算, dct, add, addWeight...<br>
+	
+    &nbsp; &nbsp; imgproc: <br>
+	&nbsp; &nbsp; &nbsp; &nbsp; 此模組包含: <br>
+	&nbsp; &nbsp; &nbsp; &nbsp;              影像的濾波, bilateralFilter, erode...<br>
+	
     &nbsp; &nbsp; highgui <br>
     &nbsp; &nbsp; video   <br>
     &nbsp; &nbsp; calib3d <br>
@@ -30,15 +38,10 @@
 
 
 <h4> <b>OpenCV 範例的框架</b></h4>
+<h4> ch0 基本安裝介紹</h4>
+<h4> ch1 影像存取相關範例</h4>&nbsp; &nbsp; <a href="./OpenCV/1-1_OpenCamera.html"> 1-1打開相機</a>&nbsp; &nbsp; <a href="./OpenCV/1-2_LoadImageAndSave.html"> 1-2讀取影像並轉檔儲存</a>
 <br>
-
-<h4>ch0 基本安裝介紹</h4> <br>
-<h4>ch1 影像存取相關範例</h4> <br>
-<p>&nbsp; &nbsp; <a href="./OpenCV/1-1_OpenCamera.html"> 1-1打開相機</a>
-<br>
-   &nbsp; &nbsp; <a href="./OpenCV/1-2_LoadImageAndSave.html"> 1-2讀取影像並轉檔儲存</a>
-<br></p>
-<h4>ch2 滑鼠鍵盤介面的事件</h4> <br>
+<h4>ch2 滑鼠鍵盤介面的事件</h4><br>
     &nbsp; &nbsp; <a href="./OpenCV/2-1_TrackerBarExample.html"> 2-1創建TrackBar可調值</a>
 <br>
 <h4>ch3 二值影像處理</h4> <br>
