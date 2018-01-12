@@ -16,10 +16,10 @@
 程式說明: 
 <p>
 
-&nbsp; &nbsp;OpenCV中打開相機很容易，主要利用 cv::VideoCapture 創立一個物件，<br>
-&nbsp; &nbsp;cv::VideoCapture 物件的constructor常用有兩種型式，一個是開啟攝像頭，一個是開啟影片:<br>
-&nbsp; &nbsp; &nbsp; &nbsp;1. 開啟攝像頭  VideoCapture::VideoCapture(int device);  device為輸入的設備(如果只有一隻，輸入1即可)<br>
-&nbsp; &nbsp; &nbsp; &nbsp;2. 開啟影片 VideoCapture::VideoCapture(const string& filename); filename 為輸入的影片名稱，例如 xxx.avi<br>
+&nbsp; &nbsp;OpenCV中打開相機很容易，主要利用 cv::VideoCapture 創立一個物件，<br><br>
+&nbsp; &nbsp;cv::VideoCapture 物件的constructor常用有兩種型式，一個是開啟攝像頭，一個是開啟影片:<br><br>
+&nbsp; &nbsp; &nbsp; &nbsp;1. 開啟攝像頭  VideoCapture::VideoCapture(int device);  device為輸入的設備(如果只有一隻，輸入1即可)<br><br>
+&nbsp; &nbsp; &nbsp; &nbsp;2. 開啟影片 VideoCapture::VideoCapture(const string& filename); filename 為輸入的影片名稱，例如 xxx.avi<br><br>
 
 
 
@@ -29,18 +29,18 @@
 
 <p> #include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
-#include &#60opencv2/highgui/highgui.hpp&#62<br>
+#include &#60opencv2/highgui/highgui.hpp&#62<br><br>
 
 
 
  int main(int argc, char** argv)<br>
- {<br>
+ {<br><br>
  &nbsp; &nbsp;  cv::VideoCapture webCam(0);  // 宣告OpenCV中管理相機的物件 <br> 
- &nbsp; &nbsp;&nbsp; &nbsp;  if (!webCam.isOpened())<br>
- &nbsp; &nbsp;&nbsp; &nbsp;  return -1;<br>
+ &nbsp; &nbsp;  if (!webCam.isOpened())<br>
+ &nbsp; &nbsp;&nbsp; &nbsp;  return -1;<br><br>
  
  &nbsp; &nbsp;	char key = 'i';<br>
- &nbsp; &nbsp;	cv::namedWindow("Image");<br>
+ &nbsp; &nbsp;	cv::namedWindow("Image");<br><br>
  
  &nbsp; &nbsp;	while (key != 'o')<br>
  &nbsp; &nbsp;	{<br>
