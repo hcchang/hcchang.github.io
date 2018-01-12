@@ -4,5 +4,26 @@
 
 <h1 style="color:blue;">OpenCL 介紹</h1>
 
+<p> OpenCL 是一個跨平台可以平行加速的˙一個套件，所以使用前最好有一些平行化的概念，<br>
+    OpenCL 是Apple出來主導，希望開發者只要熟悉一種用法即可，所以可跨平台，包含iOs, MacOS, Android, Windows CUDA, Windows Intel, Linux <br>
+	但是 nVidia的TK1, TX1, TX2, 官方似乎無支援，所以這部分可能還是要用CUDA才有辦法做平行化。<br>
+    在使用類似GPU的套件時，我認為大致上可分成七大步驟<br><br>
+	
+	1. 和平台尋求需要的裝置  OpenCL: err = clGetPlatformIDs(0, 0, &num);   CUDA:  cudaStatus = cudaSetDevice(0);<br>
+	2. 在Host(CPU)端，allocate CPU記憶體，準備把運算的內容複製到GPU端記憶體的部分<br>
+	   unsigned char* srcImageBuffer = new unsigned char [DATA_SIZE];
+	3. 將Host的記憶體複製到GPU中的記憶體 <br>
+		OpenCL: cl_mem cl_srcImage = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_uchar)*DATA_SIZE, &srcImageBuffer[0], NULL);<br>
+	4. 開始讀入文字檔 (OpenCL是用一個叫做 .cl的文字檔，可以稱Kernel，裡面主要寫著需要平行化的程式)，並給GPU用其指令集做編譯<br>
+	    讀進來的文字都用char 儲存，<br>
+		const char* source = &cldata[0];<br>
+		將此source放到GPU內去做編譯:<br>
+		cl_program program = clCreateProgramWithSource(context, 1, &source, 0, 0);<br>
+	5. 
+		
+	    
+	
+	
+
 </body>
 </html>
