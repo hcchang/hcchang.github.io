@@ -17,12 +17,14 @@
 <p>
 
 &nbsp; &nbsp;OpenCV中打開相機很容易，主要利用 cv::VideoCapture 創立一個物件，<br><br>
-&nbsp; &nbsp;cv::VideoCapture 物件的constructor常用有兩種型式，一個是開啟攝像頭，一個是開啟影片:<br><br>
-&nbsp; &nbsp; &nbsp; &nbsp;1. 開啟攝像頭  VideoCapture::VideoCapture(int device);  device為輸入的設備(如果只有一隻，輸入1即可)<br><br>
-&nbsp; &nbsp; &nbsp; &nbsp;2. 開啟影片 VideoCapture::VideoCapture(const string& filename); filename 為輸入的影片名稱，例如 xxx.avi<br><br>
+&nbsp; &nbsp;a. cv::VideoCapture 物件的constructor常用有兩種型式，一個是開啟攝像頭，一個是開啟影片:<br><br>
+&nbsp; &nbsp; &nbsp; &nbsp;1. 開啟攝像頭  VideoCapture::VideoCapture(int device);<br>  
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;device: 為輸入的設備(如果只有一隻，輸入0即可)<br><br>
+&nbsp; &nbsp; &nbsp; &nbsp;2. 開啟影片 VideoCapture::VideoCapture(const string& filename); <br>
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;filename: 為輸入的影片名稱，例如 xxx.avi<br><br>
+ 
 
-
-
+<hr>
 <p>
 範例程式: 
 <p>
