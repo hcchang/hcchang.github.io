@@ -26,71 +26,68 @@
 
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;	cv::Mat img = cv::imread("lena.bmp");
+&nbsp; &nbsp;	cv::Mat img = cv::imread("lena.bmp");<br>
 	
-&nbsp; &nbsp;	if (img.empty())
+&nbsp; &nbsp;	if (img.empty())<br>
 &nbsp; &nbsp;	{
-&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取檔案" << std::endl;
-&nbsp; &nbsp;&nbsp; &nbsp;		return -1;
-&nbsp; &nbsp;	}
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取檔案" << std::endl;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return -1;<br>
+&nbsp; &nbsp;	}<br>
 
-&nbsp; &nbsp;	cv::Mat imgGray;
+&nbsp; &nbsp;	cv::Mat imgGray;<br>
 
-&nbsp; &nbsp;	cv::cvtColor(img, img, CV_RGB2GRAY);
+&nbsp; &nbsp;	cv::cvtColor(img, img, CV_RGB2GRAY);<br>
 
-&nbsp; &nbsp;   //得到圖像的長和寬
-&nbsp; &nbsp;	int M = cv::getOptimalDFTSize(img.rows);
-&nbsp; &nbsp;	int N = cv::getOptimalDFTSize(img.cols);
+&nbsp; &nbsp;   //得到圖像的長和寬<br>
+&nbsp; &nbsp;	int M = cv::getOptimalDFTSize(img.rows);<br>
+&nbsp; &nbsp;	int N = cv::getOptimalDFTSize(img.cols);<br>
 
-				//擴充邊界
-&nbsp; &nbsp;	cv::Mat padded;
-&nbsp; &nbsp;	cv::copyMakeBorder(img, padded, 0, M - img.rows, 0, N - img.cols, cv::BORDER_CONSTANT, cv::Scalar::all(0));
+&nbsp; &nbsp;	//擴充邊界<br>
+&nbsp; &nbsp;	cv::Mat padded;<br>
+&nbsp; &nbsp;	cv::copyMakeBorder(img, padded, 0, M - img.rows, 0, N - img.cols, cv::BORDER_CONSTANT, cv::Scalar::all(0));<br>
 
-&nbsp; &nbsp;	cv::Mat planes[] = { cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F) };
+&nbsp; &nbsp;	cv::Mat planes[] = { cv::Mat_<float>(padded), cv::Mat::zeros(padded.size(), CV_32F) };<br>
 
-&nbsp; &nbsp;	cv::Mat complexImg;
-&nbsp; &nbsp;	cv::merge(planes, 2, complexImg);
+&nbsp; &nbsp;	cv::Mat complexImg;<br>
+&nbsp; &nbsp;	cv::merge(planes, 2, complexImg);<br><br>
 
-				//離散傅立葉轉換
-&nbsp; &nbsp;	cv::dft(complexImg, complexImg);
+&nbsp; &nbsp;	//離散傅立葉轉換<br>
+&nbsp; &nbsp;	cv::dft(complexImg, complexImg);<br>
 
-	
+&nbsp; &nbsp;	// 計算 log(1 + sqrt(Re(DFT(img))**2 + Im(DFT(img))**2))<br>
+&nbsp; &nbsp;	split(complexImg, planes);<br>
+&nbsp; &nbsp;	magnitude(planes[0], planes[1], planes[0]);<br>
+&nbsp; &nbsp;	cv::Mat mag = planes[0];<br>
+&nbsp; &nbsp;	mag += cv::Scalar::all(1);<br>
+&nbsp; &nbsp;	log(mag, mag);<br>
 
-&nbsp; &nbsp;	// compute log(1 + sqrt(Re(DFT(img))**2 + Im(DFT(img))**2))
+&nbsp; &nbsp;	// 將算完的頻譜複製出來<br>
+&nbsp; &nbsp;	mag = mag(cv::Rect(0, 0, mag.cols & -2, mag.rows & -2));<br>
 
-&nbsp; &nbsp;	split(complexImg, planes);
-&nbsp; &nbsp;	magnitude(planes[0], planes[1], planes[0]);
-&nbsp; &nbsp;	cv::Mat mag = planes[0];
-&nbsp; &nbsp;	mag += cv::Scalar::all(1);
-&nbsp; &nbsp;	log(mag, mag);
+&nbsp; &nbsp;	int cx = mag.cols / 2;<br>
+&nbsp; &nbsp;	int cy = mag.rows / 2;<br>
 
-&nbsp; &nbsp;	// crop the spectrum, if it has an odd number of rows or columns
-&nbsp; &nbsp;	mag = mag(cv::Rect(0, 0, mag.cols & -2, mag.rows & -2));
+&nbsp; &nbsp;	// 重新安排斯個傅立葉影像並複製<br>
+&nbsp; &nbsp;	// 原點為圖的中心點<br>
+&nbsp; &nbsp;	cv::Mat tmp;<br>
+&nbsp; &nbsp;	cv::Mat q0(mag, cv::Rect(0, 0, cx, cy));<br>
+&nbsp; &nbsp;	cv::Mat q1(mag, cv::Rect(cx, 0, cx, cy));<br>
+&nbsp; &nbsp;	cv::Mat q2(mag, cv::Rect(0, cy, cx, cy));<br>
+&nbsp; &nbsp;	cv::Mat q3(mag, cv::Rect(cx, cy, cx, cy));<br>
 
-&nbsp; &nbsp;	int cx = mag.cols / 2;
-&nbsp; &nbsp;	int cy = mag.rows / 2;
+&nbsp; &nbsp;	q0.copyTo(tmp);<br>
+&nbsp; &nbsp;	q3.copyTo(q0);<br>
+&nbsp; &nbsp;	tmp.copyTo(q3);<br>
 
-&nbsp; &nbsp;	// rearrange the quadrants of Fourier image
-&nbsp; &nbsp;	// so that the origin is at the image center
-&nbsp; &nbsp;	cv::Mat tmp;
-&nbsp; &nbsp;	cv::Mat q0(mag, cv::Rect(0, 0, cx, cy));
-&nbsp; &nbsp;	cv::Mat q1(mag, cv::Rect(cx, 0, cx, cy));
-&nbsp; &nbsp;	cv::Mat q2(mag, cv::Rect(0, cy, cx, cy));
-&nbsp; &nbsp;	cv::Mat q3(mag, cv::Rect(cx, cy, cx, cy));
+&nbsp; &nbsp;	q1.copyTo(tmp);<br>
+&nbsp; &nbsp;	q2.copyTo(q1);<br>
+&nbsp; &nbsp;	tmp.copyTo(q2);<br>
 
-&nbsp; &nbsp;	q0.copyTo(tmp);
-&nbsp; &nbsp;	q3.copyTo(q0);
-&nbsp; &nbsp;	tmp.copyTo(q3);
+&nbsp; &nbsp;	normalize(mag, mag, 0, 1, cv::NORM_MINMAX);<br>
 
-&nbsp; &nbsp;	q1.copyTo(tmp);
-&nbsp; &nbsp;	q2.copyTo(q1);
-&nbsp; &nbsp;	tmp.copyTo(q2);
+&nbsp; &nbsp;	imshow("spectrum magnitude", mag);<br>
 
-&nbsp; &nbsp;	normalize(mag, mag, 0, 1, cv::NORM_MINMAX);
-
-&nbsp; &nbsp;	imshow("spectrum magnitude", mag);
-
-&nbsp; &nbsp;	cv::waitKey(0);
+&nbsp; &nbsp;	cv::waitKey(0);<br>
 
 &nbsp; &nbsp;	return 0; <br>
 } <br>

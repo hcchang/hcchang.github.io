@@ -7,13 +7,19 @@
 
 <body>
 
-<h1 style="color:blue;">1-2讀取影像並轉檔儲存</h1>
+<h1 style="color:blue;">5-1稀疏光流Lucas-Kanade</h1>
 
-<p>1-2讀取影像並轉檔儲存
+<p>5-1稀疏光流Lucas-Kanade
 <p>
 
+<p>
+程式說明: 
+<p>
 
-<img src='/1-2.bmp'  border='0'>
+<hr>
+<p>
+範例程式: 
+<p>
 
 
 <p> #include &#60iostream&#62<br>
@@ -22,32 +28,56 @@
 
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;	cv::Mat img;<br>
-&nbsp; &nbsp;	img = cv::imread("lena.bmp");<br>
-&nbsp; &nbsp;	cv::namedWindow("Image");<br>
+&nbsp; &nbsp;	cv::Mat imgA = cv::imread("Img1.jpg", CV_LOAD_IMAGE_GRAYSCALE);<br>
+&nbsp; &nbsp;	cv::Mat imgB = cv::imread("Img2.jpg", CV_LOAD_IMAGE_GRAYSCALE);<br>
+&nbsp; &nbsp;	<br>
 
-&nbsp; &nbsp;	//顯示一些影像的特性
 &nbsp; &nbsp;	if (img.data) <br>
 &nbsp; &nbsp;	{ <br>
-&nbsp; &nbsp;		std::cout << "影像的高: " << img.rows << std::endl; <br>
-&nbsp; &nbsp;		std::cout << "影像的寬: " << img.cols << std::endl; <br>
-
-&nbsp; &nbsp;		//顯示影像 <br>
-
-&nbsp; &nbsp;		cv::imshow("Image", img); <br>
-&nbsp; &nbsp;		cv::waitKey(0); <br>
-
-&nbsp; &nbsp;		//將影像存成不同的格式ex: jpg
-   <br>
-&nbsp; &nbsp;		cv::imwrite("out.jpg", img); <br>
-
-&nbsp; &nbsp;	} <br>
-&nbsp; &nbsp;	else <br>
-&nbsp; &nbsp;	{<br>
-&nbsp; &nbsp;		std::cout << "讀不到影像" << std::endl;
- <br>
+&nbsp; &nbsp;		std::cout<<"無法讀取影像" << std::endl; <br>
 &nbsp; &nbsp;		return -1; <br>
 &nbsp; &nbsp;	} <br>
+
+&nbsp; &nbsp;   cv::resize(imgA, imgA, cv::Size(imgA.cols / 2, imgA.rows / 2));<br>
+&nbsp; &nbsp;   cv::resize(imgB, imgB, cv::Size(imgB.cols / 2, imgB.rows / 2));<br>
+
+&nbsp; &nbsp;    cv::Size img_sz = imgA.size();<br>
+&nbsp; &nbsp;    int win_size = 10;<br>
+&nbsp; &nbsp;    cv::Mat imgC = cv::imread("Img2.jpg", CV_LOAD_IMAGE_UNCHANGED);<br>
+&nbsp; &nbsp;    cv::resize(imgC, imgC, cv::Size(imgC.cols / 2, imgC.rows / 2));<br>
+
+&nbsp; &nbsp;    //檢查圖中是否有好的特徵點值得追蹤<br>
+
+&nbsp; &nbsp;	std::vector< cv::Point2f > cornersA, cornersB;<br>
+&nbsp; &nbsp;	const int MAX_CORNERS = 500;<br>
+&nbsp; &nbsp;	cv::goodFeaturesToTrack(imgA, cornersA, MAX_CORNERS,  0.01,5, cv::noArray(), 3, false, 0.04 );<br>
+
+&nbsp; &nbsp;	//再取特徵點中更細的subpixel<br>
+
+&nbsp; &nbsp;	cv::cornerSubPix(imgA,cornersA, cv::Size(win_size, win_size), cv::Size(-1, -1), <br>
+&nbsp; &nbsp;		cv::TermCriteria(cv::TermCriteria::MAX_ITER | cv::TermCriteria::EPS,20,0.03 ));<br>
+
+&nbsp; &nbsp;	// 使用 Lucas Kanade 光流算法<br>
+&nbsp; &nbsp;	std::vector<uchar> features_found;<br>
+&nbsp; &nbsp;	cv::calcOpticalFlowPyrLK(imgA, imgB, cornersA, cornersB, features_found, cv::noArray(), cv::Size(win_size * 2 + 1, win_size * 2 + 1),<br>  
+&nbsp; &nbsp;		5, cv::TermCriteria(cv::TermCriteria::MAX_ITER | cv::TermCriteria::EPS, 20, 0.3  ));<br>
+
+&nbsp; &nbsp;	//將每個特徵點看是否有找出的對應點，如果有並畫出pixel間移動的距離<br>
+	
+&nbsp; &nbsp;	for (int i = 0; i < static_cast<int>(cornersA.size()); ++i) {<br>
+&nbsp; &nbsp;		if (!features_found[i]) {<br>
+&nbsp; &nbsp;			continue;<br>
+&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;		cv::line(imgC, cornersA[i], cornersB[i], cv::Scalar(0, 255, 0), 1);<br>
+&nbsp; &nbsp;	}<br>
+
+&nbsp; &nbsp;	cv::imshow("ImageA", imgA);<br>
+&nbsp; &nbsp;	cv::imshow("ImageB", imgB);<br>
+&nbsp; &nbsp;	cv::imshow("LK Optical Flow Example", imgC);<br>
+&nbsp; &nbsp;	cv::waitKey(0);<br>
+
+&nbsp; &nbsp;	return 0;<br>
+
 
 &nbsp; &nbsp;	return 0; <br>
 } <br>

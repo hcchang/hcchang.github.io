@@ -7,47 +7,149 @@
 
 <body>
 
-<h1 style="color:blue;">1-2讀取影像並轉檔儲存</h1>
+<h1 style="color:blue;">5-2_ORB特徵匹配</h1>
 
-<p>1-2讀取影像並轉檔儲存
+<p>5-2_ORB特徵匹配
 <p>
 
-
-<img src='/1-2.bmp'  border='0'>
 
 
 <p> #include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
-#include &#60opencv2/highgui/highgui.hpp&#62<br>
+#include &#60opencv2/highgui/highgui.hpp&#62<br><br>
 
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;	cv::Mat img;<br>
-&nbsp; &nbsp;	img = cv::imread("lena.bmp");<br>
-&nbsp; &nbsp;	cv::namedWindow("Image");<br>
+&nbsp; &nbsp;	//一般影像的feature 獲取通常可以分成兩個部分，一個為偵測特徵點，一個為萃取描述子<br>
+&nbsp; &nbsp;	cv::Ptr<cv::FeatureDetector> detector = cv::FeatureDetector::create("ORB");<br>
+&nbsp; &nbsp;	cv::Ptr<cv::DescriptorExtractor> descriptor_extractor = cv::DescriptorExtractor::create("ORB");<br>
+&nbsp; &nbsp;	cv::Ptr<cv::DescriptorMatcher> descriptor_matcher = cv::DescriptorMatcher::create("BruteForce");<br>
+<br>
+&nbsp; &nbsp;	if (detector.empty() || descriptor_extractor.empty()) <br>
+&nbsp; &nbsp;&nbsp; &nbsp;	std::cout << "fail to create detector!";<br>
+<br>
+&nbsp; &nbsp;	cv::Mat imgFirst = cv::imread("box.png"); <br>
+&nbsp; &nbsp;	cv::Mat imgSecond = cv::imread("box_in_scene.png"); <br>
 
-&nbsp; &nbsp;	//顯示一些影像的特性
-&nbsp; &nbsp;	if (img.data) <br>
-&nbsp; &nbsp;	{ <br>
-&nbsp; &nbsp;		std::cout << "影像的高: " << img.rows << std::endl; <br>
-&nbsp; &nbsp;		std::cout << "影像的寬: " << img.cols << std::endl; <br>
-
-&nbsp; &nbsp;		//顯示影像 <br>
-
-&nbsp; &nbsp;		cv::imshow("Image", img); <br>
-&nbsp; &nbsp;		cv::waitKey(0); <br>
-
-&nbsp; &nbsp;		//將影像存成不同的格式ex: jpg
-   <br>
-&nbsp; &nbsp;		cv::imwrite("out.jpg", img); <br>
-
-&nbsp; &nbsp;	} <br>
-&nbsp; &nbsp;	else <br>
+&nbsp; &nbsp;	if(!imgFirst.data || ! imgSecond.data) <br>
 &nbsp; &nbsp;	{<br>
-&nbsp; &nbsp;		std::cout << "讀不到影像" << std::endl;
- <br>
-&nbsp; &nbsp;		return -1; <br>
-&nbsp; &nbsp;	} <br>
+&nbsp; &nbsp;&nbsp;&nbsp; 	std::cout<<"無法讀取圖檔" << std::endl;<br>
+&nbsp; &nbsp;&nbsp;&nbsp;   return -1;<br>
+&nbsp; &nbsp;   }<br>
+<br>
+&nbsp; &nbsp;	//偵測特徵點 <br>
+&nbsp; &nbsp;	std::vector<cv::KeyPoint> m_FirstKey, m_SecondKey; <br>
+&nbsp; &nbsp;   detector->detect(imgFirst, m_FirstKey);<br>
+&nbsp; &nbsp;	detector->detect(imgSecond, m_SecondKey);<br>
+&nbsp; &nbsp;	std::cout << "First image feature points:" << m_FirstKey.size() << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "Second image feature points:" << m_SecondKey.size() << std::endl;<br>
+<br>
+&nbsp; &nbsp; //萃取描述子，用以之後比對的部分<br>
+&nbsp; &nbsp;	cv::Mat descriptors1, descriptors2;<br>
+&nbsp; &nbsp;	descriptor_extractor->compute(imgFirst, m_FirstKey, descriptors1);<br>
+&nbsp; &nbsp;	descriptor_extractor->compute(imgSecond, m_SecondKey, descriptors2);<br>
+<br>
+&nbsp; &nbsp;	cv::Mat img_m_FirstKey, img_m_SecondKey;<br>
+&nbsp; &nbsp;	drawKeypoints(imgFirst, m_FirstKey, img_m_FirstKey, cv::Scalar::all(-1), 0);<br>
+&nbsp; &nbsp;	drawKeypoints(imgSecond, m_SecondKey, img_m_SecondKey, cv::Scalar::all(-1), 0);<br>
+&nbsp; &nbsp;	imshow("box", img_m_FirstKey);<br>
+&nbsp; &nbsp;	imshow("box_in_scene", img_m_SecondKey);<br>
+&nbsp; &nbsp;	cv::waitKey(1000);<br>
+<br>
+&nbsp; &nbsp;	std::vector<cv::DMatch> matches;<br>
+&nbsp; &nbsp;	descriptor_matcher->match(descriptors1, descriptors2, matches);<br>
+&nbsp; &nbsp;	std::cout << "Match number:" << matches.size() << std::endl;<br>
+&nbsp; &nbsp;	double max_dist = 0;<br>
+&nbsp; &nbsp;	double min_dist = 100;<br>
+&nbsp; &nbsp;	for (int i = 0; i<matches.size(); i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		double dist = matches[i].distance;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (dist < min_dist) min_dist = dist;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (dist > max_dist) max_dist = dist;<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	std::cout << "Max_distance:" << max_dist << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "Min_distance:" << min_dist << std::endl;<br>
+<br>
+&nbsp; &nbsp;	std::vector<cv::DMatch> goodMatches;<br>
+&nbsp; &nbsp;	for (int i = 0; i<matches.size(); i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (matches[i].distance < 0.6 * max_dist)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			goodMatches.push_back(matches[i]);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	std::cout << "goodMatch:" << goodMatches.size() << std::endl;<br>
+<br>
+&nbsp; &nbsp;	cv::Mat img_matches;<br>
+&nbsp; &nbsp;	drawMatches(imgFirst, m_FirstKey, imgSecond, m_SecondKey, goodMatches, img_matches, cv::Scalar::all(-1)/*CV_RGB(255,0,0)*/, CV_RGB(0, 255, 0), cv::Mat(), 2);<br>
+&nbsp; &nbsp;	IplImage result = img_matches;<br>
+<br>
+&nbsp; &nbsp;	std::vector<cv::DMatch> m_Matches = goodMatches;<br>
+&nbsp; &nbsp;	int ptCount = (int)m_Matches.size();<br>
+&nbsp; &nbsp;	cv::Mat p1(ptCount, 2, CV_32F);//to save all feature point of left image<br>
+&nbsp; &nbsp;	cv::Mat p2(ptCount, 2, CV_32F);//to save all feature point of right image<br>
+<br>
+&nbsp; &nbsp;	cv::Point2f pt;<br>
+&nbsp; &nbsp;	for (int i = 0; i<ptCount; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		pt = m_FirstKey[m_Matches[i].queryIdx].pt;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		p1.at<float>(i, 0) = pt.x;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		p1.at<float>(i, 1) = pt.y;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		pt = m_SecondKey[m_Matches[i].trainIdx].pt;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		p2.at<float>(i, 0) = pt.x;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		p2.at<float>(i, 1) = pt.y;<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	std::vector<uchar> m_RANSACStatus;<br>
+&nbsp; &nbsp;	cv::Mat F = cv::findFundamentalMat(p1, p2, m_RANSACStatus, cv::FM_RANSAC); // notice p1, p2 original<br>
+<br>
+&nbsp; &nbsp;	int OutlinerCount = 0;<br>
+&nbsp; &nbsp;	for (int i = 0; i<ptCount; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;		if (m_RANSACStatus[i] == 0)<br>
+&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			OutlinerCount++;<br>
+&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	int InlinerCount = ptCount - OutlinerCount;<br>
+&nbsp; &nbsp;	std::cout << "InlinerCount:" << InlinerCount << std::endl;<br>
+<br>
+&nbsp; &nbsp;	std::vector<cv::Point2f> m_LeftInlier;<br>
+&nbsp; &nbsp;	std::vector<cv::Point2f> m_RightInlier;<br>
+&nbsp; &nbsp;	std::vector<cv::DMatch> m_InlierMatches;<br>
+<br>
+&nbsp; &nbsp;	m_InlierMatches.resize(InlinerCount);<br>
+&nbsp; &nbsp;	m_LeftInlier.resize(InlinerCount);<br>
+&nbsp; &nbsp;	m_RightInlier.resize(InlinerCount);<br>
+&nbsp; &nbsp;	InlinerCount = 0;<br>
+&nbsp; &nbsp;	float inlier_minRx = imgFirst.cols;<br>
+<br>
+&nbsp; &nbsp;	for (int i = 0; i<ptCount; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (m_RANSACStatus[i] != 0)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			m_LeftInlier[InlinerCount].x = p1.at<float>(i, 0);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			m_LeftInlier[InlinerCount].y = p1.at<float>(i, 1);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			m_RightInlier[InlinerCount].x = p2.at<float>(i, 0);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			m_RightInlier[InlinerCount].y = p2.at<float>(i, 1);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			m_InlierMatches[InlinerCount].queryIdx = InlinerCount;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;		m_InlierMatches[InlinerCount].trainIdx = InlinerCount;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (m_RightInlier[InlinerCount].x<inlier_minRx) inlier_minRx = m_RightInlier[InlinerCount].x;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			InlinerCount++;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	std::vector<cv::KeyPoint> key1(InlinerCount);<br>
+&nbsp; &nbsp;	std::vector<cv::KeyPoint> key2(InlinerCount);<br>
+&nbsp; &nbsp;	cv::KeyPoint::convert(m_LeftInlier, key1);<br>
+&nbsp; &nbsp;	cv::KeyPoint::convert(m_RightInlier, key2);<br>
+<br>
+&nbsp; &nbsp;	cv::Mat OutImage;<br>
+&nbsp; &nbsp;	drawMatches(imgFirst, key1, imgSecond, key2, m_InlierMatches, OutImage);<br>
+&nbsp; &nbsp;	cvNamedWindow("Match features", 1);<br>
+&nbsp; &nbsp;	cvShowImage("Match features", &IplImage(OutImage));<br>
+&nbsp; &nbsp;	cv::waitKey(0);<br>
+&nbsp; &nbsp;	imshow("Good Matches & Object detection", OutImage);<br>
 
 &nbsp; &nbsp;	return 0; <br>
 } <br>
