@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>   	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>7-1_FindChessBoardCorner</title>
+  </head>
+
+<body>
+
+<h1 style="color:blue;">7-1找校正板角點</h1>
+
+<p>7-1找校正板角點
+<p>
+
+
+
+
+<p> #include &#60iostream&#62<br>
+#include &#60opencv2/opencv.hpp&#62<br>
+#include &#60opencv2/highgui/highgui.hpp&#62<br>
+#include &#60vector&#62<br>
+
+int main(int argc, char** argv)<br>
+{<br>
+&nbsp; &nbsp; cv::Mat chessImg = cv::imread("chessboard.jpg");<br>
+&nbsp; &nbsp; cv::Mat chessImgGray;<br>
+
+&nbsp; &nbsp; int nx = 9;<br>
+&nbsp; &nbsp; int ny = 6;<br>
+
+&nbsp; &nbsp; std::vector<cv::Point2f > corners;<br>
+&nbsp; &nbsp; if (!chessImg.data)<br>
+&nbsp; &nbsp; {<br>
+&nbsp; &nbsp;&nbsp;&nbsp; std::cout << "無法讀取影像" << std::endl;<br>
+&nbsp; &nbsp;&nbsp;&nbsp; return -1;
+&nbsp; &nbsp; {<br>
+<br>
+&nbsp; &nbsp; cv::cvtColor(chessImg, chessImgGray, CV_RGB2GRAY);<br>
+&nbsp; &nbsp; int count = cv::findChessboardCorners(chessImgGray, cv::Size(nx, ny), corners, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);<br>
+&nbsp; &nbsp; cv::find4QuadCornerSubpix(chessImgGray, corners, cvSize(11, 11));<br>
+&nbsp; &nbsp; cv::drawChessboardCorners(chessImg, cv::Size(nx, ny), corners, count);<br>
+
+&nbsp; &nbsp; cv::imshow("corner detection", chessImg);<br>
+&nbsp; &nbsp; cv::waitKey(0);<br>
+
+&nbsp; &nbsp; return 0; <br>
+} <br>
+ </p>
+
+
+
+</body>
+</html>
