@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>   	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>2-2_DetecMouseCoordinate</title>
+  </head>
+
+<body>
+
+<h1 style="color:blue;">2-2偵測滑鼠的座標</h1>
+
+<p>2-2偵測滑鼠的座標
+<p>
+
+
+
+<p> #include &#60iostream&#62<br>
+#include &#60opencv2/opencv.hpp&#62<br>
+#include &#60opencv2/highgui/highgui.hpp&#62<br>
+<br>                                                                                                <br>
+int x = 0;
+int y = 0;
+<br>
+static void onMouse(int _event, int _x, int _y, int _flags, void*)<br>
+{<br>
+&nbsp; &nbsp;	std::cout << "x 影像座標: " << _x << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "y 影像座標: " << _y << std::endl;<br>
+}<br>
+<br>                                                                                                    <br>
+<br>                                                                                                    <br>
+int main(int argc, char** argv)<br>
+{<br>
+&nbsp; &nbsp;	cv::Mat img;<br>
+&nbsp; &nbsp;	img = cv::imread("lena.bmp");<br>
+&nbsp; &nbsp;	cv::namedWindow("Image");<br>
+<br>
+&nbsp; &nbsp;	if (!img.data)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取影像" << std::endl;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return -1;<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	cv::imshow("Image", img);<br>
+&nbsp; &nbsp;	cvSetMouseCallback("Image", onMouse);<br>
+&nbsp; &nbsp;	cv::waitKey(0);<br>
+	return 0;<br>
+}<br>                                                                                                   <br>
+ </p>
+
+
+
+</body>
+</html>
