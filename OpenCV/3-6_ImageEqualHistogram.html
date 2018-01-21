@@ -16,83 +16,43 @@
 <p> #include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
-<br>
-double normal() // value = -6.0 ~ 6.0<br> 
-{<br>
-&nbsp;&nbsp;	double value = 0;<br>
-&nbsp;&nbsp;	for (int i = 0; i != 12; ++i)<br>
-&nbsp;&nbsp;	{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		value += ((double)rand() / RAND_MAX); // single from: 0 ~ 1; valueTotal from: 0 ~ 12<br>
-&nbsp;&nbsp;	}<br>
-&nbsp;&nbsp;	return value - 6.0;<br>
-}<br>
-<br>
-void SaltPepperNoiseImage(cv::Mat& Image, float threshold, int imageSize)<br>
-{<br>
-&nbsp;&nbsp;	float random = 0;<br>
-&nbsp;&nbsp;	int value = 0;<br>
-&nbsp;&nbsp;	for (int y = 0; y < imageSize; y++)<br>
-&nbsp;&nbsp;	{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		for (int x = 0; x < imageSize; x++)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			random = ((float)rand() / RAND_MAX); // from 0 ~ 1<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			if (random < threshold)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				value = 0;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else if (random >(1 - threshold))<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				value = 255;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				value = Image.at<unsigned char>(y, x);<br>
-<br><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			Image.at<unsigned char>(y, x) = value;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		}<br>
-&nbsp;&nbsp;	}<br>
-}<br>
-<br>
-void GassianNoiseImage(cv::Mat& Image, float amplitude, int imageSize)<br>
-{<br>
-&nbsp;&nbsp;	double random = 0;<br>
-&nbsp;&nbsp;	int noise = 0;<br>
-&nbsp;&nbsp;	int value = 0;<br>
-&nbsp;&nbsp;	for (int y = 0; y < imageSize; y++)<br>
-&nbsp;&nbsp;	{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		for (int x = 0; x < imageSize; x++)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			random = normal();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			noise = (int)(amplitude*random);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			value = Image.at<unsigned char>(y, x) + noise;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			if (value>255)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				Image.at<unsigned char>(y, x) = 255;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else if (value < 0)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				Image.at<unsigned char>(y, x) = 0;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				Image.at<unsigned char>(y, x) = value;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		}<br>
-&nbsp;&nbsp;	}<br>
-}<br>
+#include &#60vector&#62<br>
 <br>
 int main(int argc, char** argv)   <br>                                                                                       <br>
 {<br>                                                                                                                        <br>
-&nbsp;&nbsp;	cv::Mat img = cv::imread("lena.bmp", 0);<br>
+&nbsp;&nbsp;	cv::Mat img, imgResize;<br>
+&nbsp;&nbsp;	img = cv::imread("Image.jpg");<br>
+&nbsp;&nbsp;	std::vector<cv::Mat> splitImage;<br>
+<br>
 &nbsp;&nbsp;	if (img.empty())<br>
 &nbsp;&nbsp;	{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		std::cout << "無法讀取圖片" << std::endl;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		std::cout << "無法讀取影像" << std::endl;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;		return -1;<br>
 &nbsp;&nbsp;	}<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::Mat imgWithGaussianNoise = img.clone();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::Mat imgWithPepperSaltNoise = img.clone();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	GassianNoiseImage(imgWithGaussianNoise, 30, imgWithGaussianNoise.cols);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	SaltPepperNoiseImage(imgWithPepperSaltNoise, 0.05, imgWithGaussianNoise.cols);<br>
+&nbsp;&nbsp;	cv::resize(img, imgResize, cv::Size(img.cols/2,img.rows/2));<br>
+&nbsp;&nbsp;	cv::Mat finalImg(cv::Size(img.cols / 2, img.rows / 2), CV_8UC3, cv::Scalar(0, 0, 0));<br>
+&nbsp;&nbsp;	cv::split(imgResize,splitImage);<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::imshow("ImgWithGaussianNoise", imgWithGaussianNoise);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::waitKey(0);<br>
+&nbsp;&nbsp;	for (int i = 0; i < 3;i++)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		cv::equalizeHist(splitImage[i], splitImage[i]);<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::imshow("ImgWithPepperSaltNoise", imgWithPepperSaltNoise);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::waitKey(0);<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::imwrite("ImgWithGaussianNoise.bmp", imgWithGaussianNoise);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::imwrite("ImgWithPepperSaltNoise.bmp", imgWithPepperSaltNoise);<br>
-<br>
+&nbsp;&nbsp;	for (int i = 0; i < img.rows / 2; i++)<br>
+&nbsp;&nbsp;	{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		for (int j = 0; j < img.cols / 2; j++)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			finalImg.at<cv::Vec3b>(i, j)[0] = splitImage[0].at<unsigned char>(i, j);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			finalImg.at<cv::Vec3b>(i, j)[1] = splitImage[1].at<unsigned char>(i, j);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			finalImg.at<cv::Vec3b>(i, j)[2] = splitImage[2].at<unsigned char>(i, j);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		}<br>
+&nbsp;&nbsp;	}<br>
+<br>	
+&nbsp;&nbsp;	cv::imshow("equaHistogram", finalImg);<br>
+&nbsp;&nbsp;	cv::waitKey(0);<br>
+&nbsp;&nbsp;	cv::cvtColor(imgResize, imgResize, CV_RGB2GRAY);<br>
+&nbsp;&nbsp;	cv::equalizeHist(imgResize, imgResize);<br>
+&nbsp;&nbsp;	cv::imshow("equaHistogramGray", imgResize);<br>
+&nbsp;&nbsp;	cv::waitKey(0);<br>
 &nbsp;&nbsp;	return 0;<br>                                      
 } <br>
  </p>

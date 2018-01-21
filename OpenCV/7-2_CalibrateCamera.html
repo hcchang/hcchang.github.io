@@ -19,30 +19,81 @@
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
 #include &#60vector&#62<br>
-
+#include &#60string&#62<br>
+<br>
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp; cv::Mat chessImg = cv::imread("chessboard.jpg");<br>
-&nbsp; &nbsp; cv::Mat chessImgGray;<br>
-
-&nbsp; &nbsp; int nx = 9;<br>
-&nbsp; &nbsp; int ny = 6;<br>
-
-&nbsp; &nbsp; std::vector<cv::Point2f > corners;<br>
-&nbsp; &nbsp; if (!chessImg.data)<br>
-&nbsp; &nbsp; {<br>
-&nbsp; &nbsp;&nbsp;&nbsp; std::cout << "無法讀取影像" << std::endl;<br>
-&nbsp; &nbsp;&nbsp;&nbsp; return -1;
-&nbsp; &nbsp; {<br>
+&nbsp; &nbsp;// 確認chessboard的角點 長和寬<br>
+&nbsp; &nbsp;	cv::Size boardSize;<br>
+&nbsp; &nbsp;	boardSize.width = 9;<br>
+&nbsp; &nbsp;	boardSize.height = 6;<br>
+&nbsp; &nbsp;	int imageNum = 9;<br>
+&nbsp; &nbsp;	float squareSize = 100.0; // millmeter<br>
 <br>
-&nbsp; &nbsp; cv::cvtColor(chessImg, chessImgGray, CV_RGB2GRAY);<br>
-&nbsp; &nbsp; int count = cv::findChessboardCorners(chessImgGray, cv::Size(nx, ny), corners, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);<br>
-&nbsp; &nbsp; cv::find4QuadCornerSubpix(chessImgGray, corners, cvSize(11, 11));<br>
-&nbsp; &nbsp; cv::drawChessboardCorners(chessImg, cv::Size(nx, ny), corners, count);<br>
-
-&nbsp; &nbsp; cv::imshow("corner detection", chessImg);<br>
-&nbsp; &nbsp; cv::waitKey(0);<br>
-
+&nbsp; &nbsp;	std::vector<cv::Mat> images;<br>
+&nbsp; &nbsp;	std::vector<std::vector<cv::Point3f>> worldObj;<br>
+&nbsp; &nbsp;	std::vector<std::vector<cv::Point2f>> imgObj;<br>
+<br>
+&nbsp; &nbsp;	cv::Mat cameraIntrinsic = cv::Mat::eye(3, 3, CV_64F);<br>
+&nbsp; &nbsp;	cv::Mat distCoeffs = cv::Mat::zeros(5, 1, CV_64F);<br>
+&nbsp; &nbsp;	std::vector<cv::Mat> rotatVecs, transVecs;<br>
+<br>
+&nbsp; &nbsp;	//int to string<br>
+&nbsp; &nbsp;	for (int i = 0; i < imageNum; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::stringstream num; <br>
+&nbsp; &nbsp;&nbsp; &nbsp;		num << i+1;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::string fileName = "left0" + num.str() + ".jpg";<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "檔案名稱: " << fileName << std::endl;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat img = cv::imread(fileName, 0);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		images.push_back(img);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (images[i].empty())<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			std::cout << "讀圖失敗" << std::endl;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			return -1;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::vector<cv::Point2f> corners;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		int count = cv::findChessboardCorners(images[i], boardSize, corners, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::find4QuadCornerSubpix(images[i], corners, cvSize(11, 11));<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		imgObj.push_back(corners);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::vector<cv::Point3f> objects;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (int _i = 0; _i < boardSize.height; _i++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			for (int _j = 0; _j < boardSize.width; _j++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				cv::Point3f point(_j*squareSize, _i*squareSize, 0);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				objects.push_back(point);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		worldObj.push_back(objects);<br>
+&nbsp; &nbsp;	}
+<br>
+&nbsp; &nbsp;	cv::Size imgSize(images[0].cols, images[0].rows);<br>
+&nbsp; &nbsp;	cv::calibrateCamera(worldObj, imgObj, imgSize, cameraIntrinsic, distCoeffs, rotatVecs, transVecs);<br>
+<br>
+&nbsp; &nbsp;	bool calibratedValueOk = cv::checkRange(cameraIntrinsic) && cv::checkRange(distCoeffs);<br>
+<br>
+&nbsp; &nbsp;	if (!calibratedValueOk)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "校正失敗" << std::endl;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return -1;<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	std::cout << "Camera Intrinsic: " << std::endl;
+&nbsp; &nbsp;	std::cout << "Camera cx: " << cameraIntrinsic.at<double>(0, 2) <<  std::endl;
+&nbsp; &nbsp;	std::cout << "Camera cy: " << cameraIntrinsic.at<double>(1, 2) << std::endl;
+&nbsp; &nbsp;	std::cout << "Camera fx: " << cameraIntrinsic.at<double>(0, 0) << std::endl;
+&nbsp; &nbsp;	std::cout << "Camera fy: " << cameraIntrinsic.at<double>(1, 1) << std::endl;
+<br>
+&nbsp; &nbsp;	std::cout << "Camera Distorsion: " << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "Camera k1: " << distCoeffs.at<double>(0, 0) << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "Camera k2: " << distCoeffs.at<double>(0, 1) << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "Camera k3: " << distCoeffs.at<double>(0, 2) << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "Camera p1: " << distCoeffs.at<double>(0, 3) << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "Camera p2: " << distCoeffs.at<double>(0, 4) << std::endl;<br>
+<br>
 &nbsp; &nbsp; return 0; <br>
 } <br>
  </p>

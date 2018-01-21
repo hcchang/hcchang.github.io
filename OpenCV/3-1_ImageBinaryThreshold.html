@@ -16,46 +16,44 @@
 <p> #include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
-#include &#60vector&#62<br>                                                                               <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; int main(int argc, char** argv)                                                                 <br>
-&nbsp; &nbsp; {                                                                                               <br>
-&nbsp; &nbsp; 	cv::Mat img, imgResize;                                                                       <br>
-&nbsp; &nbsp; 	img = cv::imread("Image.jpg");                                                                <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; 	//顯示一些影像的特性                                                                          <br>
-&nbsp; &nbsp; 	if (img.data)                                                                                 <br>
-&nbsp; &nbsp; 	{                                                                                             <br>
-&nbsp; &nbsp; 		//將影像縮小四倍                                                                            <br>
-&nbsp; &nbsp; 		int width = img.cols;                                                                       <br>
-&nbsp; &nbsp; 		int height = img.rows;                                                                      <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; 		cv::resize(img, imgResize, cv::Size(width/4, height/4));                                    <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; 		//利用vector來儲存不同channel的值                                                           <br>
-&nbsp; &nbsp; 		std::vector<cv::Mat> splitImage;                                                            <br>
-&nbsp; &nbsp; 		//將影像的RGB分開                                                                           <br>
-&nbsp; &nbsp; 		cv::split(imgResize, splitImage);                                                           <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; 		cv::Mat dst;                                                                                <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; 		cv::threshold(splitImage[1], dst, 100, 255, cv::THRESH_BINARY); //大於100以上的亮度 給值255 <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; 		cv::imshow("Bchannel", splitImage[0]);                                                      <br>
-&nbsp; &nbsp; 		cv::imshow("Gchannel", splitImage[1]);                                                      <br>
-&nbsp; &nbsp; 		cv::imshow("Rchannel", splitImage[2]);                                                      <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; 		cv::imshow("BinaryImage", dst);                                                             <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; 		cv::waitKey(0);                                                                             <br>
-&nbsp; &nbsp;                                                                                                 <br>
-&nbsp; &nbsp; 	}                                                                                             <br>
-&nbsp; &nbsp; 	else                                                                                          <br>
-&nbsp; &nbsp; 	{                                                                                             <br>
-&nbsp; &nbsp; 		std::cout << "讀不到影像" << std::endl; 
-&nbsp; &nbsp; 		return -1; <br>
-&nbsp; &nbsp; 	}                                                    <br>
-&nbsp; &nbsp; 		return 0; <br>
+#include &#60vector&#62<br> 
+<br> 
+int main(int argc, char** argv)<br>
+{<br>
+&nbsp; &nbsp; 	cv::Mat img, imgResize;<br>
+&nbsp; &nbsp; 	img = cv::imread("Image.jpg");<br>
+<br>
+&nbsp; &nbsp; 	//顯示一些影像的特性 <br>
+&nbsp; &nbsp; 	if (img.data)<br>
+&nbsp; &nbsp; 	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		//將影像縮小四倍<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		int width = img.cols;<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		int height = img.rows;<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		cv::resize(img, imgResize, cv::Size(width/4, height/4));<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		//利用vector來儲存不同channel的值<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::vector<cv::Mat> splitImage;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//將影像的RGB分開<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		cv::split(imgResize, splitImage);<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		cv::Mat dst;<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		cv::threshold(splitImage[1], dst, 100, 255, cv::THRESH_BINARY); //大於100以上的亮度 給值255 <br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		cv::imshow("Bchannel", splitImage[0]);<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		cv::imshow("Gchannel", splitImage[1]);<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		cv::imshow("Rchannel", splitImage[2]);<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		cv::imshow("BinaryImage", dst);<br>             
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		cv::waitKey(0);<br>
+<br>
+&nbsp; &nbsp; 	}<br>
+&nbsp; &nbsp; 	else<br>
+&nbsp; &nbsp; 	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		std::cout << "讀不到影像" << std::endl;<br> 
+&nbsp; &nbsp;&nbsp; &nbsp; 		return -1; <br>
+&nbsp; &nbsp; 	}<br>
+&nbsp; &nbsp; 	return 0; <br>
 }                                                    <br>
 
  </p>

@@ -17,81 +17,41 @@
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
 <br>
-double normal() // value = -6.0 ~ 6.0<br> 
+int main(int argc, char** argv)<br>
 {<br>
-&nbsp;&nbsp;	double value = 0;<br>
-&nbsp;&nbsp;	for (int i = 0; i != 12; ++i)<br>
-&nbsp;&nbsp;	{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		value += ((double)rand() / RAND_MAX); // single from: 0 ~ 1; valueTotal from: 0 ~ 12<br>
-&nbsp;&nbsp;	}<br>
-&nbsp;&nbsp;	return value - 6.0;<br>
-}<br>
+&nbsp;&nbsp;	cv::Mat imgWithGaussianNoise = cv::imread("ImgWithGaussianNoise.bmp", 0);<br>
+&nbsp;&nbsp;	cv::Mat imgWithPepperSaltNoise = cv::imread("ImgWithPepperSaltNoise.bmp", 0);<br>
 <br>
-void SaltPepperNoiseImage(cv::Mat& Image, float threshold, int imageSize)<br>
-{<br>
-&nbsp;&nbsp;	float random = 0;<br>
-&nbsp;&nbsp;	int value = 0;<br>
-&nbsp;&nbsp;	for (int y = 0; y < imageSize; y++)<br>
-&nbsp;&nbsp;	{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		for (int x = 0; x < imageSize; x++)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			random = ((float)rand() / RAND_MAX); // from 0 ~ 1<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			if (random < threshold)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				value = 0;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else if (random >(1 - threshold))<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				value = 255;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				value = Image.at<unsigned char>(y, x);<br>
-<br><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			Image.at<unsigned char>(y, x) = value;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		}<br>
-&nbsp;&nbsp;	}<br>
-}<br>
-<br>
-void GassianNoiseImage(cv::Mat& Image, float amplitude, int imageSize)<br>
-{<br>
-&nbsp;&nbsp;	double random = 0;<br>
-&nbsp;&nbsp;	int noise = 0;<br>
-&nbsp;&nbsp;	int value = 0;<br>
-&nbsp;&nbsp;	for (int y = 0; y < imageSize; y++)<br>
-&nbsp;&nbsp;	{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		for (int x = 0; x < imageSize; x++)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			random = normal();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			noise = (int)(amplitude*random);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			value = Image.at<unsigned char>(y, x) + noise;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			if (value>255)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				Image.at<unsigned char>(y, x) = 255;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else if (value < 0)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				Image.at<unsigned char>(y, x) = 0;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				Image.at<unsigned char>(y, x) = value;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;		}<br>
-&nbsp;&nbsp;	}<br>
-}<br>
-<br>
-int main(int argc, char** argv)   <br>                                                                                       <br>
-{<br>                                                                                                                        <br>
-&nbsp;&nbsp;	cv::Mat img = cv::imread("lena.bmp", 0);<br>
-&nbsp;&nbsp;	if (img.empty())<br>
+&nbsp;&nbsp;	if (imgWithGaussianNoise.empty() || imgWithPepperSaltNoise.empty())<br>
 &nbsp;&nbsp;	{<br>
 &nbsp;&nbsp;&nbsp;&nbsp;		std::cout << "無法讀取圖片" << std::endl;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;		return -1;<br>
 &nbsp;&nbsp;	}<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::Mat imgWithGaussianNoise = img.clone();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::Mat imgWithPepperSaltNoise = img.clone();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	GassianNoiseImage(imgWithGaussianNoise, 30, imgWithGaussianNoise.cols);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	SaltPepperNoiseImage(imgWithPepperSaltNoise, 0.05, imgWithGaussianNoise.cols);<br>
+&nbsp;&nbsp;	cv::Mat imgWithGaussianNBox, imgWithGaussianNMedian, imgWithGaussianNBilateral;<br>
+&nbsp;&nbsp;	cv::Mat imgWithPepperSaltNBox, imgWithPepperSaltNMedian, imgWithPepperSaltNBilateral;<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::imshow("ImgWithGaussianNoise", imgWithGaussianNoise);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::waitKey(0);<br>
+&nbsp;&nbsp;	cv::boxFilter(imgWithGaussianNoise, imgWithGaussianNBox, -1, cv::Size(3, 3));<br>
+&nbsp;&nbsp;	cv::medianBlur(imgWithGaussianNoise, imgWithGaussianNMedian, 3);<br>
+&nbsp;&nbsp;	cv::bilateralFilter(imgWithGaussianNoise, imgWithGaussianNBilateral, 10, 20,20);<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::imshow("ImgWithPepperSaltNoise", imgWithPepperSaltNoise);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::waitKey(0);<br>
+&nbsp;&nbsp;	cv::boxFilter(imgWithPepperSaltNoise, imgWithPepperSaltNBox, -1, cv::Size(3, 3));<br>
+&nbsp;&nbsp;	cv::medianBlur(imgWithPepperSaltNoise, imgWithPepperSaltNMedian, 3);<br>
+&nbsp;&nbsp;	cv::bilateralFilter(imgWithPepperSaltNoise, imgWithPepperSaltNBilateral, 10, 20, 20);<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::imwrite("ImgWithGaussianNoise.bmp", imgWithGaussianNoise);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;	cv::imwrite("ImgWithPepperSaltNoise.bmp", imgWithPepperSaltNoise);<br>
+&nbsp;&nbsp;	cv::imshow("boxFilter", imgWithGaussianNBox);<br>
+&nbsp;&nbsp;	cv::waitKey(0);<br>
+&nbsp;&nbsp;	cv::imshow("medianFilter", imgWithGaussianNMedian);<br>
+&nbsp;&nbsp;	cv::waitKey(0);<br>
+&nbsp;&nbsp;	cv::imshow("bilateralFilter", imgWithGaussianNBilateral);<br>
+&nbsp;&nbsp;	cv::waitKey(0);<br>
+<br>
+&nbsp;&nbsp;	cv::imshow("boxFilter", imgWithPepperSaltNBox);<br>
+&nbsp;&nbsp;	cv::waitKey(0);<br>
+&nbsp;&nbsp;	cv::imshow("medianFilter", imgWithPepperSaltNMedian);<br>
+&nbsp;&nbsp;	cv::waitKey(0);<br>
+&nbsp;&nbsp;	cv::imshow("bilateralFilter", imgWithPepperSaltNBilateral);<br>
+&nbsp;&nbsp;	cv::waitKey(0);<br>
 <br>
 &nbsp;&nbsp;	return 0;<br>                                      
 } <br>
