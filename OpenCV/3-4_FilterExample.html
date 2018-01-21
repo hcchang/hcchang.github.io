@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>   	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>3-4_FilterExample</title>
+  </head>
+
+<body>
+
+<h1 style="color:blue;">3-4將雜訊的圖片濾波(BoxFilter, 中值濾波, bilateral filter)</h1>
+
+<p>3-4將雜訊的圖片濾波(BoxFilter, 中值濾波, bilateral filter)
+<p>
+
+
+<p> #include &#60iostream&#62<br>
+#include &#60opencv2/opencv.hpp&#62<br>
+#include &#60opencv2/highgui/highgui.hpp&#62<br>
+<br>
+double normal() // value = -6.0 ~ 6.0<br> 
+{<br>
+&nbsp;&nbsp;	double value = 0;<br>
+&nbsp;&nbsp;	for (int i = 0; i != 12; ++i)<br>
+&nbsp;&nbsp;	{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		value += ((double)rand() / RAND_MAX); // single from: 0 ~ 1; valueTotal from: 0 ~ 12<br>
+&nbsp;&nbsp;	}<br>
+&nbsp;&nbsp;	return value - 6.0;<br>
+}<br>
+<br>
+void SaltPepperNoiseImage(cv::Mat& Image, float threshold, int imageSize)<br>
+{<br>
+&nbsp;&nbsp;	float random = 0;<br>
+&nbsp;&nbsp;	int value = 0;<br>
+&nbsp;&nbsp;	for (int y = 0; y < imageSize; y++)<br>
+&nbsp;&nbsp;	{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		for (int x = 0; x < imageSize; x++)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			random = ((float)rand() / RAND_MAX); // from 0 ~ 1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			if (random < threshold)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				value = 0;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else if (random >(1 - threshold))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				value = 255;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				value = Image.at<unsigned char>(y, x);<br>
+<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			Image.at<unsigned char>(y, x) = value;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		}<br>
+&nbsp;&nbsp;	}<br>
+}<br>
+<br>
+void GassianNoiseImage(cv::Mat& Image, float amplitude, int imageSize)<br>
+{<br>
+&nbsp;&nbsp;	double random = 0;<br>
+&nbsp;&nbsp;	int noise = 0;<br>
+&nbsp;&nbsp;	int value = 0;<br>
+&nbsp;&nbsp;	for (int y = 0; y < imageSize; y++)<br>
+&nbsp;&nbsp;	{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		for (int x = 0; x < imageSize; x++)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			random = normal();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			noise = (int)(amplitude*random);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			value = Image.at<unsigned char>(y, x) + noise;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			if (value>255)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				Image.at<unsigned char>(y, x) = 255;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else if (value < 0)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				Image.at<unsigned char>(y, x) = 0;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;			else<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;				Image.at<unsigned char>(y, x) = value;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		}<br>
+&nbsp;&nbsp;	}<br>
+}<br>
+<br>
+int main(int argc, char** argv)   <br>                                                                                       <br>
+{<br>                                                                                                                        <br>
+&nbsp;&nbsp;	cv::Mat img = cv::imread("lena.bmp", 0);<br>
+&nbsp;&nbsp;	if (img.empty())<br>
+&nbsp;&nbsp;	{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		std::cout << "無法讀取圖片" << std::endl;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;		return -1;<br>
+&nbsp;&nbsp;	}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	cv::Mat imgWithGaussianNoise = img.clone();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	cv::Mat imgWithPepperSaltNoise = img.clone();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	GassianNoiseImage(imgWithGaussianNoise, 30, imgWithGaussianNoise.cols);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	SaltPepperNoiseImage(imgWithPepperSaltNoise, 0.05, imgWithGaussianNoise.cols);<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	cv::imshow("ImgWithGaussianNoise", imgWithGaussianNoise);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	cv::waitKey(0);<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	cv::imshow("ImgWithPepperSaltNoise", imgWithPepperSaltNoise);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	cv::waitKey(0);<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	cv::imwrite("ImgWithGaussianNoise.bmp", imgWithGaussianNoise);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;	cv::imwrite("ImgWithPepperSaltNoise.bmp", imgWithPepperSaltNoise);<br>
+<br>
+&nbsp;&nbsp;	return 0;<br>                                      
+} <br>
+ </p>
+
+
+
+</body>
+</html>
