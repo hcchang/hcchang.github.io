@@ -31,7 +31,8 @@
 
 步驟細節說明:<br><br>
 
-&nbsp; &nbsp;  章節 1. 初始化GPU裝置<br>
+&nbsp; &nbsp;  <h3>章節 1. 初始化GPU裝置</h3> <br>
+<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  記得 include cl的頭檔 -> #include &#60CL\cl.h&#62<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  取得程式下有多少的平台 (platform)，通常為1，可能在分布式系統下可以有很多的平台: <br>
 &nbsp; &nbsp;&nbsp; &nbsp;   err_num = clGetPlatformIDs(0, 0, &num_platforms);<br>
@@ -127,8 +128,11 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;	return 0;<br>
 }<br>
 	    
-	
-	
+<hr>	
+
+&nbsp; &nbsp;  <h3>章節 2. 將計算的記憶體從Host複製到GPU並實現簡易的MedianFilter範例</h3> <br>
+<br>
+
 
 </body>
 </html>
