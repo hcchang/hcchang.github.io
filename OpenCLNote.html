@@ -40,10 +40,10 @@
 &nbsp; &nbsp;&nbsp; &nbsp;   err_num = clGetPlatformIDs(num_platforms, &platformsIds[0], &num_platforms);	<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  cl_context_properties properties[] = { CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(platformsIds[0]), 0 }; <br>
 &nbsp; &nbsp;&nbsp; &nbsp;	cl_context context = clCreateContextFromType(properties, CL_DEVICE_TYPE_GPU, NULL, NULL, NULL);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;  context可以用來得到device的很多資訊，包含裝置的名稱，記憶體大小，等...<br><br>
-
-&nbsp; &nbsp;範例程式: <br><br>
-
+&nbsp; &nbsp;&nbsp; &nbsp;  context可以用來得到device的很多資訊，包含裝置的名稱，記憶體大小，等...<br>
+<br>
+&nbsp; &nbsp;範例程式: <br>
+<br>
 #include &#60iostream&#62<br>
 #include &#60CL\cl.h&#62<br>
 #include &#vector&#62<br>
@@ -132,6 +132,301 @@ int main(int argc, char** argv)<br>
 
 &nbsp; &nbsp;  <h3>章節 2. 將計算的記憶體從Host複製到GPU並實現簡易的MedianFilter範例</h3> <br>
 <br>
+&nbsp; &nbsp;&nbsp; &nbsp;  遵循章節1部分的初始化步驟完，再來需要將給GPU編譯的code從檔案讀入到char*的buffer，<br>
+&nbsp; &nbsp;&nbsp; &nbsp;  利用cl讀到的buffer來產生program, clCreateProgramWithSource(context, 1, &source, 0, 0)，<br>
+&nbsp; &nbsp;&nbsp; &nbsp;  再來需要將host的buffer建立，和需要GPU建立的記憶體形式，需要讀取，寫入等等...<br>
+&nbsp; &nbsp;&nbsp; &nbsp;  cl_mem cl_ImgN = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_uchar)*imgSize, imgN.data, NULL);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;  創建需要GPU的運算空間<br>
+&nbsp; &nbsp;&nbsp; &nbsp;  最後讀取算出的結果<br>
+&nbsp; &nbsp;&nbsp; &nbsp;  程序結束前，記得釋放需要的記憶體 clRelease...<br>
+<br>
+&nbsp; &nbsp;實驗結果: <br>
+<br>
+<br>
+&nbsp; &nbsp;範例程式: <br>
+<br>
+<br>
+#include &#60opencv2/highgui/highgui.hpp&#62<br>
+#include &#60opencv2/opencv.hpp&#62<br>
+#include &#60Cl/cl.h&#62<br>
+#include &#60fstream&#62<br>
+#include &#60string&#62<br>
+<br>
+void medianFilterCPU(cv::Mat& imgN, cv::Mat& imgF);<br>
+void medianFilterCPUIt(cv::Mat& imgN, cv::Mat& imgF);<br>
+void swap(int* A, int* B);<br>
+void bubbleSort(int* kArray, int size);<br>
+int calcMedian(int* kArray, int size);<br>
+<br>
+<br>
+int main(int argc, char** argv)<br>
+{<br>
+<br>
+&nbsp; &nbsp;	//初始化GPU<br>
+&nbsp; &nbsp;	cl_int err;<br>
+&nbsp; &nbsp;	cl_uint num;<br>
+&nbsp; &nbsp;	err = clGetPlatformIDs(0, 0, &num);<br>
+&nbsp; &nbsp;	if (err != CL_SUCCESS){<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cerr << "Unable to get platforms\n";<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return 0;<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	std::vector<cl_platform_id> platforms(num);<br>
+&nbsp; &nbsp;	err = clGetPlatformIDs(num, &platforms[0], &num);<br>
+&nbsp; &nbsp;	if (err != CL_SUCCESS){<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cerr << "Unable to get platform ID";<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return 0;<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	/////ask platform id//////////<br>
+<br>
+&nbsp; &nbsp;	////get Platform and get Device<br>
+&nbsp; &nbsp;	////and get Command_queue<br>
+&nbsp; &nbsp;	cl_context_properties prop[] = { CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(platforms[0]), 0 }; <br>
+&nbsp; &nbsp;	cl_context context = clCreateContextFromType(prop, CL_DEVICE_TYPE_GPU, NULL, NULL, NULL);<br>
+&nbsp; &nbsp;	if (context == 0){<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cerr << "Can't create OpenCL context\n";<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return 0;<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	size_t cb;<br>
+&nbsp; &nbsp;	clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &cb);<br>
+&nbsp; &nbsp;	std::vector<cl_device_id> devices(cb / sizeof(cl_device_id));<br>
+&nbsp; &nbsp;	clGetContextInfo(context, CL_CONTEXT_DEVICES, cb, &devices[0], 0);  ////get context<br>
+<br>
+&nbsp; &nbsp;	clGetDeviceInfo(devices[0], CL_DEVICE_NAME, 0, NULL, &cb);<br>
+&nbsp; &nbsp;	std::string devname;<br>
+&nbsp; &nbsp;	devname.resize(cb);<br>
+&nbsp; &nbsp;	clGetDeviceInfo(devices[0], CL_DEVICE_NAME, cb, &devname[0], 0);    ////get device<br>
+&nbsp; &nbsp;	std::cout << "Device: " << devname.c_str() << std::endl;<br>
+<br>
+&nbsp; &nbsp;	cl_uint compute_unit;<br>
+&nbsp; &nbsp;	clGetDeviceInfo(devices[0], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &compute_unit, 0);<br>
+&nbsp; &nbsp;	std::cout << "compute_unit: " << compute_unit << std::endl;<br>
+<br>
+&nbsp; &nbsp;	cl_uint max_work_group_size;<br>
+&nbsp; &nbsp;	clGetDeviceInfo(devices[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(cl_uint), &max_work_group_size, 0);<br>
+&nbsp; &nbsp;	std::cout << "max_work_group_size: " << max_work_group_size << std::endl;<br>
+<br>
+&nbsp; &nbsp;	cl_command_queue queue = clCreateCommandQueue(context, devices[0], 0, 0);<br>
+&nbsp; &nbsp;	if (queue == 0){<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cerr << "Can't create command queue" << std::endl;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		clReleaseContext(context);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return 0;<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	//初始化GPU 完成<br>
+<br>
+&nbsp; &nbsp;	//讀取cl的程式碼，需要給GPUcompile<br>
+&nbsp; &nbsp;	std::string clFileName = "MedianFilter.cl";<br>
+<br>
+&nbsp; &nbsp;	std::ifstream clFile(clFileName, std::ios_base::binary);<br>
+&nbsp; &nbsp;	if (!clFile.good())<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取檔案" << std::endl;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return -1;<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	// 取得檔案長度<br>
+&nbsp; &nbsp;	clFile.seekg(0, std::ios_base::end);<br>
+&nbsp; &nbsp;	size_t codeLength = clFile.tellg();<br>
+&nbsp; &nbsp;	clFile.seekg(0, std::ios_base::beg);<br>
+&nbsp; &nbsp;	//read program source<br>
+&nbsp; &nbsp;	std::vector<char> fileCodeData(codeLength + 1);<br>
+&nbsp; &nbsp;	clFile.read(&fileCodeData[0], codeLength);<br>
+&nbsp; &nbsp;	fileCodeData[codeLength] = 0;<br>
+<br>
+&nbsp; &nbsp;	//create and bild program<br>
+&nbsp; &nbsp;	cl_build_status status;<br>
+&nbsp; &nbsp;	size_t logsize;<br>
+&nbsp; &nbsp;	const char* source = &fileCodeData[0];<br>
+&nbsp; &nbsp;	char* programLog;<br>
+<br>
+&nbsp; &nbsp;	cl_program _program = clCreateProgramWithSource(context, 1, &source, 0, 0);<br>
+&nbsp; &nbsp;	err = clBuildProgram(_program, 0, 0, 0, 0, 0);<br>
+<br>
+&nbsp; &nbsp;	//以下部分會顯示cl內錯誤的程式碼<br>
+&nbsp; &nbsp;	if (err != CL_SUCCESS)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		clGetProgramBuildInfo(_program, devices[0], CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &status, NULL);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		clGetProgramBuildInfo(_program, devices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &logsize);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		programLog = (char*)calloc(logsize + 1, sizeof(char));<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		clGetProgramBuildInfo(_program, devices[0], CL_PROGRAM_BUILD_LOG, logsize + 1, programLog, NULL);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		printf("Build failed; error = %d, status = %d, programLof = nn%s", err, status, programLog);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		free(programLog);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return -1;<br>
+&nbsp; &nbsp;	}<br>
+<br>	
+&nbsp; &nbsp;	//讀取圖片<br>
+&nbsp; &nbsp;	cv::Mat imgN = cv::imread("ImgWithPepperSaltNoise.bmp", 0);<br>
+&nbsp; &nbsp;	if(imgN.empty())<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取圖片" << std::endl;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return -1;<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	cv::Mat imgF(cv::Size(imgN.cols, imgN.rows), CV_8UC1, cv::Scalar(0));<br>
+&nbsp; &nbsp;	int imgSize = imgN.cols*imgN.rows;<br>
+&nbsp; &nbsp;	cl_mem cl_ImgN = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_uchar)*imgSize, imgN.data, NULL);<br>
+&nbsp; &nbsp;	cl_mem cl_ImgF = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_uchar)*imgSize, imgF.data, NULL);<br>
+<br>
+&nbsp; &nbsp;	float t1 = cv::getTickCount();<br>
+&nbsp; &nbsp;	cl_kernel MedianFilter = clCreateKernel(_program, "MedianFilter", 0);<br>
+<br>
+&nbsp; &nbsp;	for (int i = 0; i < 10; i++)<br>
+&nbsp; &nbsp;	{		
+&nbsp; &nbsp;&nbsp; &nbsp;		clSetKernelArg(MedianFilter, 0, sizeof(cl_mem), &cl_ImgN);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		clSetKernelArg(MedianFilter, 1, sizeof(cl_mem), &cl_ImgF);<br>
+<br>
+&nbsp; &nbsp;		const int workDimension = 2;<br>
+&nbsp; &nbsp;		size_t global_work_size[workDimension] = { imgN.cols, imgN.rows };<br>
+&nbsp; &nbsp;		cl_event evt;<br>
+&nbsp; &nbsp;		err = clEnqueueNDRangeKernel(queue, MedianFilter, 2, NULL, global_work_size, NULL, 0, NULL, &evt);<br>
+&nbsp; &nbsp;		if (err == CL_SUCCESS)<br>
+&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			err = clEnqueueReadBuffer(queue, cl_ImgF, CL_TRUE, 0, sizeof(cl_uchar)*imgSize, imgF.data, 0, 0, 0);<br>
+&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	float t2 = 1000 * (cv::getTickCount() - t1) / cv::getTickFrequency();<br>
+&nbsp; &nbsp;	std::cout << "time: " << t2 << "ms" << std::endl;<br>
+&nbsp; &nbsp;	cv::imshow("MedianFilterOpenCL", imgF);<br>
+&nbsp; &nbsp;	cv::waitKey(0);<br>
+<br>
+&nbsp; &nbsp;	cv::Mat imgFC(cv::Size(imgN.cols, imgN.rows), CV_8UC1, cv::Scalar(0));<br>
+<br>
+&nbsp; &nbsp;	float t3 = cv::getTickCount();<br>
+&nbsp; &nbsp;	for (int i = 0; i < 10; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//cv::medianBlur(imgN, imgFOpenCV, 5);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		medianFilterCPU(imgN, imgFC);<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	float t4 = 1000 * (cv::getTickCount() - t3) / cv::getTickFrequency();<br>
+&nbsp; &nbsp;	std::cout << "time: " << t4 << "ms" << std::endl;<br>
+&nbsp; &nbsp;	cv::imshow("MedianFilterOpenCV", imgFC);<br>
+&nbsp; &nbsp;	cv::waitKey(0);<br>
+<br>
+&nbsp; &nbsp;	cv::Mat imgFCIt(cv::Size(imgN.cols, imgN.rows), CV_8UC1, cv::Scalar(0));<br>
+&nbsp; &nbsp;	float t5 = cv::getTickCount();<br>
+&nbsp; &nbsp;	for (int i = 0; i < 10; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		medianFilterCPUIt(imgN, imgFCIt);<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	float t6 = 1000 * (cv::getTickCount() - t5) / cv::getTickFrequency();<br>
+&nbsp; &nbsp;	std::cout << "time: " << t6 << "ms" << std::endl;<br>
+&nbsp; &nbsp;	cv::imshow("MedianFilterOpenCV", imgFCIt);<br>
+&nbsp; &nbsp;	cv::waitKey(0);<br>
+<br>
+&nbsp; &nbsp;	clReleaseKernel(MedianFilter);<br>
+&nbsp; &nbsp;	clReleaseProgram(_program);<br>
+&nbsp; &nbsp;	clReleaseCommandQueue(queue);<br>
+&nbsp; &nbsp;	clReleaseContext(context);<br>
+&nbsp; &nbsp;	clReleaseMemObject(cl_ImgN);<br>
+&nbsp; &nbsp;	clReleaseMemObject(cl_ImgF);<br>
+<br>
+&nbsp; &nbsp;	return 0;<br>
+}<br>
+<br>
+<br>
+void medianFilterCPU(cv::Mat& imgN, cv::Mat& imgF)<br>
+{<br>
+&nbsp; &nbsp;	int m_width = imgN.cols;<br>
+&nbsp; &nbsp;	int m_height = imgN.rows;<br>	
+&nbsp; &nbsp;	for (int oi = 2; oi < imgN.rows-2; oi++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (int oj = 2; oj < imgN.cols-2; oj++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			int index_k = 0;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			int kArray[25];<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			for (int i = oi-2; i < 3 + oi; i++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				for (int j = oj-2; j < 3 + oj; j++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;					kArray[index_k] = imgN.at<unsigned char>(i,j);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;					index_k++;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			int median = calcMedian(kArray, 25);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			imgF.at<unsigned char>(oi, oj) = median;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+}<br>
+<br>
+<br>
+void medianFilterCPUIt(cv::Mat& imgN, cv::Mat& imgF)<br>
+{<br>
+<br>
+&nbsp; &nbsp;	cv::MatIterator_<unsigned char> it, end;<br>
+&nbsp; &nbsp;	int m_width = imgN.cols;<br>
+&nbsp; &nbsp;	int m_height = imgN.rows;<br>
+<br>
+&nbsp; &nbsp;	unsigned char *pF;<br>
+&nbsp; &nbsp;	unsigned char *pN;<br>
+&nbsp; &nbsp;	for (int oi = 0; oi < imgN.rows; oi++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		pF = imgF.ptr<unsigned char>(oi);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (int oj = 0; oj < imgN.cols; oj++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			int index_k = 0;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			int kArray[25];<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			for (int i = oi - 2; i < 3 + oi; i++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				pN = imgN.ptr<unsigned char>(i);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				for (int j = oj - 2; j < 3 + oj; j++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;					kArray[index_k] = pN[j];<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;					index_k++;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			int median = calcMedian(kArray, 25);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			pF[oj] = median;<br>		
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+}<br>
+<br>
+<br>
+void swap(int* A, int* B)<br>
+{<br>
+&nbsp; &nbsp;	int tmp;<br>
+&nbsp; &nbsp;	tmp = *A;<br>
+&nbsp; &nbsp;	*A = *B;<br>
+&nbsp; &nbsp;	*B = tmp;<br>
+}<br>
+<br>
+<br>
+void bubbleSort(int* kArray, int size)<br>
+{<br>
+&nbsp; &nbsp;	for (int i = 0; i< size - 1; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (int j = 0; j < size - i; j++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (kArray[j] > kArray[j + 1])<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				swap(&kArray[j], &kArray[j + 1]);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+}<br>
+<br>
+<br>
+int calcMedian(int* kArray, int size)<br>
+{<br>
+&nbsp; &nbsp;	int median;<br>
+&nbsp; &nbsp;	bubbleSort(kArray, size);<br>
+<br>
+&nbsp; &nbsp;	if (size % 2 == 0)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		median = (kArray[size / 2 - 1] + kArray[size / 2]) / 2;<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	else<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		median = kArray[(size - 1) / 2];<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	return median;<br>
+}<br>
+<br>
+
 
 
 </body>
