@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>   	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>1-1_LoadPCDFileAndShow</title>
+  </head>
+
+<body>
+
+<tr><td align="center"><h1 style="color:blue;">1-1讀取PCD檔案並顯示</h1></td></tr>
+
+<p>1-1讀取PCD檔案並顯示
+<p>
+
+<p>
+程式說明: 
+<p>
+
+
+<hr>
+<p>
+範例程式: 
+<p>
+<br>
+#include &#60iostream&#62<br>
+#include &#60pcl/io/pcd_io.h#62<br>
+#include &#60pcl/visualization/cloud_viewer.h#62<br>
+<br>
+int main(int argc, char** argv)<br>
+{<br>
+&nbsp; &nbsp;	pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPoints(new pcl::PointCloud<pcl::PointXYZRGB>);<br>
+&nbsp; &nbsp;	pcl::io::loadPCDFile("points.pcd", *showPoints);<br>
+<br>
+&nbsp; &nbsp;	pcl::visualization::CloudViewer viewer("Clouds");<br>
+<br>
+&nbsp; &nbsp;	viewer.showCloud(showPoints);<br>
+<br>
+&nbsp; &nbsp;	while (!viewer.wasStopped())<br> 
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//因為這邊是和visualization的視窗同步跑，所以可以在之中執行一些處理<br>
+&nbsp; &nbsp;	}<br>
+<br>	
+&nbsp; &nbsp;	return 0;<br>
+}<br>
+<br>
+</body>
+</html>

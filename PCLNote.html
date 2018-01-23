@@ -11,10 +11,33 @@
 <h1>PCL 介紹</h1>
 <p>有鑑於台灣關於 Point Cloud Library (PCL) 的教學程式非常的少，3D的視覺應用在人臉，<br>
 機器人或無人車上面都會使用到，因此在此寫下範例程式供大家參考</p>
+<p> PCL在編譯的時候要注意，主要有用到了5個 thrid party 的 library <br>
+&nbsp; &nbsp; 1. Eigen<br>
+&nbsp; &nbsp; 2. flann<br>
+&nbsp; &nbsp; 3. vtk <br>
+&nbsp; &nbsp; 4. qhull <br>
+&nbsp; &nbsp; 5. boost <br>
+<br><br><br>
+<p>主要的模組可以分成以下的部分組成:</p> <br> 
+&nbsp; &nbsp; filters    <br>
+&nbsp; &nbsp; features    <br>
+&nbsp; &nbsp; keypoints    <br>
+&nbsp; &nbsp; registration    <br>
+&nbsp; &nbsp; kdtree    <br>
+&nbsp; &nbsp; octree   <br>
+&nbsp; &nbsp; segmentation   <br>
+&nbsp; &nbsp; sample_consensus   <br>
+&nbsp; &nbsp; surface   <br>
+&nbsp; &nbsp; recognition   <br>
+&nbsp; &nbsp; io   <br>
+&nbsp; &nbsp; visualization   <br>
 
+
+<hr>
 <p> PCL的範例程式框架<br>
 
 <p> ch1 點雲的存取相關範例和可視化<br>
+&nbsp; &nbsp; <a href="./PCL/1-1_LoadPCDFileAndShow.html"> 1-1讀取PCD檔案並顯示</a><br>
 <p> ch2 裝置的銜接<br>
 <p> ch3 kdtree範例<br>
 <p> ch4 octree範例<br>

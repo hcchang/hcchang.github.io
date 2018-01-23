@@ -140,10 +140,10 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  最後讀取算出的結果<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  程序結束前，記得釋放需要的記憶體 clRelease...<br>
 <br>
-&nbsp; &nbsp;實驗結果: <br>
+實驗結果: <br>
 <br>
 <br>
-&nbsp; &nbsp;範例程式: <br>
+範例程式: <br>
 <br>
 <br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
@@ -426,8 +426,90 @@ int calcMedian(int* kArray, int size)<br>
 &nbsp; &nbsp;	return median;<br>
 }<br>
 <br>
+<br>
+cl文檔的程式碼(MedianFilter.cl): <br>
+<br>
+<br>
+<br>
+#define m_width  512 <br>
+#define m_height  512 <br>
+#define vSkipSize  5<br>
+#define hSkipSize  5<br>
+<br>
+void swap(int* A, int* B)<br>
+{<br>
+&nbsp; &nbsp;    int tmp;<br>
+&nbsp; &nbsp;	tmp = *A;<br>
+&nbsp; &nbsp;	*A = *B;<br>
+&nbsp; &nbsp;	*B = tmp;<br>
+}<br>
+<br>
+void bubbleSort(int* kArray, int size)<br>
+{<br>
+&nbsp; &nbsp;	for(int i= 0; i< size -1 ; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for(int j=0; j < size-i; j++ )<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;		    if(kArray[j] > kArray[j+1])<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;		    {<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			    swap(&kArray[j], &kArray[j+1]);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;		    }<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+}<br>
 
+int calcMedian(int* kArray, int size)<br>
+{<br>
+&nbsp; &nbsp;   int median;<br>
+<br>	
+&nbsp; &nbsp;	bubbleSort(kArray, size);<br>
+&nbsp; &nbsp;	if (size %2 ==0)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		median = (kArray[size / 2 - 1] + kArray[size / 2 ]) /2;<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	else<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		median = kArray[(size-1) / 2];<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	return median;<br>
+}<br>
+<br>
+<br>
+__kernel void MedianFilter(__global uchar *srcImageN, __global uchar *srcImageF)<br>
+{<br>
+&nbsp; &nbsp;    int idx = get_global_id(0);<br>
+&nbsp; &nbsp;    int idy = get_global_id(1);<br>
+<br>	
+&nbsp; &nbsp;	int index = idy*m_width + idx;<br>
+<br>	
+&nbsp; &nbsp;	int kArray[25];<br>
+<br>	
+&nbsp; &nbsp;	int index_k = 0;<br>
+&nbsp; &nbsp;	int centerSeparate = 2;//(hSkipSize-1)/2;<br>	
+&nbsp; &nbsp;	if(idx > 2 && idx < m_height-2 && idy > 2 && idy < m_height-2)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for(int i = idy-2; i< idy+3; i++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			for(int j =idx-2; j< idx+3; j++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				index = i*m_width+j;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				kArray[index_k] = srcImageN[index];<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				index_k++;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;		int median = calcMedian(kArray, 25);<br>
+&nbsp; &nbsp;		index = idy*m_width + idx;<br>
+&nbsp; &nbsp;		srcImageF[index] = median;<br>
+&nbsp; &nbsp;	}<br>
+}<br>
+<br>
+<hr>
+&nbsp; &nbsp;  <h3>章節 3. Android上的OpenCL範例</h3> <br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;  因為手機Android的普及，並且上面高通使用的內建GPU晶片越來越好，所以我們也可以利用上面的GPU幫我們做一點事情<br>
 
+<br>
+&nbsp; &nbsp;範例程式: <br>
 
 </body>
 </html>
