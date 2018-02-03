@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>   	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>5-1_VoxelFilterForPointCloud</title>
+  </head>
+
+<body>
+
+<tr><td align="center"><h1 style="color:blue;">5-1利用Filter過濾點雲數</h1></td></tr>
+
+<p>5-1利用Filter過濾點雲數
+<p>
+
+<p>
+程式說明: 
+<p>
+
+
+<hr>
+<p>
+範例程式: 
+<p>
+<br>
+#include &#60iostream#62<br>
+#include &#60pcl/io/pcd_io.h#62<br>
+#include &#60pcl/visualization/cloud_viewer.h#62<br>
+#include &#60pcl/octree/octree_pointcloud.h#62<br>
+#include &#60pcl/octree/octree_search.h#62<br>
+<br>
+int main(int argc, char** argv)<br>
+{<br>
+&nbsp; &nbsp;    pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPoints(new pcl::PointCloud<pcl::PointXYZRGB>);<br>
+&nbsp; &nbsp;	pcl::io::loadPCDFile("points.pcd", *showPoints);<br>
+<br>
+&nbsp; &nbsp;	pcl::visualization::CloudViewer viewer("Clouds");<br>
+&nbsp; &nbsp;	viewer.showCloud(showPoints);<br>
+<br>
+&nbsp; &nbsp;	float resolution = 0.03;<br>
+&nbsp; &nbsp;	pcl::octree::OctreePointCloudSearch<pcl::PointXYZRGB> octreePoint(resolution);<br>
+<br>
+&nbsp; &nbsp;	double minX = 0.0;<br>
+&nbsp; &nbsp;	double minY = 0.0;<br>
+&nbsp; &nbsp;	double minZ = 0.0;<br>
+&nbsp; &nbsp;	double maxX = 0.0;<br>
+&nbsp; &nbsp;	double maxY = 0.0;<br>
+&nbsp; &nbsp;	double maxZ = 0.0;<br>
+<br>
+&nbsp; &nbsp;	octreePoint.setInputCloud(showPoints);<br>
+&nbsp; &nbsp;	octreePoint.addPointsFromInputCloud();<br>
+&nbsp; &nbsp;	octreePoint.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ);<br>
+<br>
+&nbsp; &nbsp;	float xLength = (float)abs(maxX - minX);<br>
+&nbsp; &nbsp;	float yLength = (float)abs(maxY - minY);<br>
+&nbsp; &nbsp;	float zLength = (float)abs(maxZ - minZ);<br>
+<br>
+&nbsp; &nbsp;	float volume = xLength*yLength*zLength;<br>
+<br>
+&nbsp; &nbsp;	int K = 10;<br>
+<br>
+&nbsp; &nbsp;	pcl::PointXYZRGB searchPointKNN;<br>
+<br>
+&nbsp; &nbsp;	searchPointKNN.x = 0.0;<br>
+&nbsp; &nbsp;	searchPointKNN.y = 0.0;<br>
+&nbsp; &nbsp;	searchPointKNN.z = 0.6;<br>
+<br>
+&nbsp; &nbsp;	std::vector<int> pointIdxNKNSearch;<br>
+&nbsp; &nbsp;	std::vector<float> pointNKNSquaredDistance;<br>
+<br>
+&nbsp; &nbsp;	if (octreePoint.nearestKSearch(searchPointKNN, K, pointIdxNKNSearch, pointNKNSquaredDistance) > 0)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (size_t i = 0; i < pointIdxNKNSearch.size(); ++i)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			std::cout << "nearestKSearch: " << showPoints->points[pointIdxNKNSearch[i]].x<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			<< " " << showPoints->points[pointIdxNKNSearch[i]].y<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			<< " " << showPoints->points[pointIdxNKNSearch[i]].z<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			<< " (squared distance: " << pointNKNSquaredDistance[i] << ")" << std::endl;<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	std::vector<int> pointIdxRadiusSearch;<br>
+&nbsp; &nbsp;	std::vector<float> pointRadiusSquaredDistance;<br>
+<br>
+&nbsp; &nbsp;	float radius = 0.99;<br>
+&nbsp; &nbsp;	pcl::PointXYZRGB searchPoint;<br>
+<br>
+&nbsp; &nbsp;	searchPoint.x = 0.0;<br>
+&nbsp; &nbsp;	searchPoint.y = 0.0;<br>
+&nbsp; &nbsp;	searchPoint.z = 0.6;<br>
+<br>
+&nbsp; &nbsp;	if (octreePoint.radiusSearch(searchPoint, radius, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (size_t i = 0; i < pointIdxRadiusSearch.size(); ++i)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			std::cout << "radiusSearch: " << showPoints->points[pointIdxRadiusSearch[i]].x<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			<< " " << showPoints->points[pointIdxRadiusSearch[i]].y<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			<< " " << showPoints->points[pointIdxRadiusSearch[i]].z<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			<< " (squared distance: " << pointRadiusSquaredDistance[i] << ")" << std::endl;<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	while (!viewer.wasStopped()) <br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//因為這邊是和visualization的視窗同步跑，所以可以在之中執行一些處理<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	return 0;<br>
+}<br>
+<br>
+</body>
+</html>
