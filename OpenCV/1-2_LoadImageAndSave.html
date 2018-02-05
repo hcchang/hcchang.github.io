@@ -36,22 +36,21 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;	cv::Mat img;<br>
 &nbsp; &nbsp;	img = cv::imread("lena.bmp");<br>
 &nbsp; &nbsp;	cv::namedWindow("Image");<br>
-
-&nbsp; &nbsp;	//顯示一些影像的特性
+<br>
+&nbsp; &nbsp;	//顯示一些影像的特性<br>
 &nbsp; &nbsp;	if (img.data) <br>
 &nbsp; &nbsp;	{ <br>
 &nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "影像的高: " << img.rows << std::endl; <br>
 &nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "影像的寬: " << img.cols << std::endl; <br>
-
-&nbsp; &nbsp;		//顯示影像 <br>
-
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//顯示影像 <br>
+<br>
 &nbsp; &nbsp;&nbsp; &nbsp;		cv::imshow("Image", img); <br>
 &nbsp; &nbsp;&nbsp; &nbsp;		cv::waitKey(0); <br>
-
-&nbsp; &nbsp;		//將影像存成不同的格式ex: jpg
-   <br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//將影像存成不同的格式ex: jpg
+<br>
 &nbsp; &nbsp;&nbsp; &nbsp;		cv::imwrite("out.jpg", img); <br>
-
 &nbsp; &nbsp;	} <br>
 &nbsp; &nbsp;	else <br>
 &nbsp; &nbsp;	{<br>
@@ -59,7 +58,7 @@ int main(int argc, char** argv)<br>
  <br>
 &nbsp; &nbsp;&nbsp; &nbsp;		return -1; <br>
 &nbsp; &nbsp;	} <br>
-
+<br>
 &nbsp; &nbsp;	return 0; <br>
 } <br>
  </p>
