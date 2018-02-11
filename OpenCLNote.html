@@ -29,10 +29,8 @@
 
 <hr>
 
-步驟細節說明:<br><br>
-
+步驟細節說明:<br>
 &nbsp; &nbsp;  <h3>章節 1. 初始化GPU裝置</h3> <br>
-<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  記得 include cl的頭檔 -> #include &#60CL\cl.h&#62<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  取得程式下有多少的平台 (platform)，通常為1，可能在分布式系統下可以有很多的平台: <br>
 &nbsp; &nbsp;&nbsp; &nbsp;   err_num = clGetPlatformIDs(0, 0, &num_platforms);<br>
@@ -42,7 +40,9 @@
 &nbsp; &nbsp;&nbsp; &nbsp;	cl_context context = clCreateContextFromType(properties, CL_DEVICE_TYPE_GPU, NULL, NULL, NULL);<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  context可以用來得到device的很多資訊，包含裝置的名稱，記憶體大小，等...<br>
 <br>
-&nbsp; &nbsp;範例程式: <br>
+輸出結果: <br>
+<br>
+範例程式: <br>
 <br>
 #include &#60iostream&#62<br>
 #include &#60CL\cl.h&#62<br>
@@ -78,7 +78,7 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;	}<br>
 <br>
 &nbsp; &nbsp;	size_t param_value_size;<br>
-&nbsp; &nbsp;	clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &param_value_size);<br>
+&nbsp; &nbsp;	clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &#38param_value_size);<br>
 &nbsp; &nbsp;	std::vector<cl_device_id> devices(param_value_size / sizeof(cl_device_id));<br>
 &nbsp; &nbsp;	clGetContextInfo(context, CL_CONTEXT_DEVICES, param_value_size, &devices[0], 0);  ////get context<br>
 <br>
@@ -129,7 +129,6 @@ int main(int argc, char** argv)<br>
 }<br>
 	    
 <hr>	
-
 &nbsp; &nbsp;  <h3>章節 2. 將計算的記憶體從Host複製到GPU並實現簡易的MedianFilter範例</h3> <br>
 <br>
 &nbsp; &nbsp;&nbsp; &nbsp;  遵循章節1部分的初始化步驟完，再來需要將給GPU編譯的code從檔案讀入到char*的buffer，<br>
@@ -140,7 +139,7 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  最後讀取算出的結果<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  程序結束前，記得釋放需要的記憶體 clRelease...<br>
 <br>
-實驗結果: <br>
+輸出結果: <br>
 <br>
 <br>
 範例程式: <br>
