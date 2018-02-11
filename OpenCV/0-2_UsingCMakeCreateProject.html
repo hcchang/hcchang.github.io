@@ -7,12 +7,59 @@
 
 <body>
 
-<h1 style="color:blue;">0-2簡易的使用Cmake創建專案</h1>
+<h1 style="color:blue;">0-2簡易的使用CMake創建專案</h1>
 
-<p>0-2簡易的使用Cmake創建專案
+<p>0-2簡易的使用CMake創建專案
 <p>
+<p>
+簡介:
+<p>
+&nbsp; &nbsp;利用CMake創建專案的好處在於可以讓你的程式不只運行在單一平台上面，CMake 也是 cross compiler make的簡寫，<br>
+&nbsp; &nbsp;在windows上面，我們可能只需要將Visual Studio的專案配置好即可編輯，但是到Linux底下，我們又需要為此專案重寫一個makefile，<br>
+&nbsp; &nbsp;為了統一方便，我們可以用CMake幫我們產生相對應的專案檔案，如此我們針對不同平台只要改CMake不需要去改不同平台的專案檔。<br>
+&nbsp; &nbsp;可以到官方網站下載: https://cmake.org/<br>
+&nbsp; &nbsp;在這邊我只紀錄如何簡單的使用在創建專案上，太深的技術或CMake語法我就不寫(其實自己還在研究中)<br>
 
+<p>
+語法說明:
+<p>
+&nbsp; &nbsp; (1)我們一開始要先決定Cmake需要編譯的版本 (目前官方網站有3.10.2)，<br>
+&nbsp; &nbsp; &nbsp; &nbsp; cmake_minimum_required(VERSION 2.6) 希望下載最少是2.6以上的版本，<br>
+&nbsp; &nbsp; (2)給定專案的名稱<br>
+&nbsp; &nbsp; &nbsp; &nbsp; project(1-1_OpenCamera)<br>
+&nbsp; &nbsp; (3)找需要相對應的資料包，例如在這邊我們會用到OpenCV<br>
+&nbsp; &nbsp; &nbsp; &nbsp; find_package( OpenCV REQUIRED )<br>
+&nbsp; &nbsp; (4)創建專案底下會產生執行檔的cpp<br>
+&nbsp; &nbsp; &nbsp; &nbsp; add_executable(1-1_OpenCamera OpenCamera.cpp)<br>
+&nbsp; &nbsp; (5)專案需要連結的套件<br>
+&nbsp; &nbsp; &nbsp; &nbsp; target_link_libraries(1-1_OpenCamera ${OpenCV_LIBS})<br>
 
+<p>
+建立OpenCV的專案範例:
+<p>
+&nbsp; &nbsp;用記事本創建一個CMakeLists.txt<br>
+&nbsp; &nbsp;裡面需要底下的程式碼，記得把相對應的OpenCamera.cpp(參考底下1-1專案)也一併放入相同資料夾，<br>
+
+CMakeLists.txt 代碼:<br>
+<br>
+cmake_minimum_required(VERSION 2.6)<br>
+project(1-1_OpenCamera)<br>
+find_package( OpenCV REQUIRED )<br>
+<br>
+add_executable(1-1_OpenCamera OpenCamera.cpp)<br>
+target_link_libraries(1-1_OpenCamera ${OpenCV_LIBS})<br>
+<br>
+<br>
+在Windows底下，記得下載CMake程式<br>
+操作方式如下:<br>
+<br>
+<img src='Result0-2_1.jpg' alt="lena" width = "712" height = "448"><br>
+<br>
+如果OpenCV沒有設定環境變數，則會找不到OpenCV，<br>
+此時再用手動方式輸入即可 (ps. Linux則不會有此問題)<br>
+<br>
+<img src='Result0-2_2.jpg' alt="lena" width = "712" height = "448">
+<br>
 
 </body>
 </html>
