@@ -12,12 +12,25 @@
 <p>0-1基本資料結構介紹
 <p>
 
-1. cv::Mat: <br>
+1. cv::Mat; 影像矩陣類 <br>
 &nbsp; &nbsp;在OpenCV中很常用的是 cv::Mat 為矩陣陣列，<br>
 &nbsp; &nbsp;舉凡讀圖，或是圖像的pixel by pixel操作，都是需要用到。<br>
 &nbsp; &nbsp;例如: 讀一張圖變成矩陣 cv::Mat Image = cv::imread("test.bmp",1);<br>
 &nbsp; &nbsp;即可將讀進來的圖檔當作一個陣列做操作<br>
-
+<br>
+2. cv::Point; 點類別 <br>
+&nbsp; &nbsp;點的類別主要有兩種 cv::Point2i, cv::Point3f,
+&nbsp; &nbsp;
+<br>
+3. cv::Scalar; 值類別 <br>
+&nbsp; &nbsp;此部分在一開始初始化影像數據時常使用，如果初始化的R,G,B值給0，<br>
+&nbsp; &nbsp;另外值得注意的是，在OpenCV中用的是BGR 而非 RGB
+&nbsp; &nbsp;例如: cv::Mat Image(..., ..., cv::Scalar(0,0,0)); <br>
+<br>
+4. cv::Size; <br>
+&nbsp; &nbsp;此部分在一開始初始化圖像值可以給定的影像長寬，<br>
+&nbsp; &nbsp;例如: cv::Mat Image(cv::Size(imgWIdth, imgHeight), ...); <br>
+&nbsp; &nbsp;
 
 </body>
 </html>
