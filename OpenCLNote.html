@@ -25,7 +25,22 @@
 &nbsp; &nbsp;       clEnqueueReadBuffer<br><br>
 &nbsp; &nbsp;   7. 釋放記憶體<br>
 &nbsp; &nbsp;       clReleaseKernel, clReleaseMemObject, clReleaseProgram ....<br><br>
+<br>
+<br>
+架構可以參考以下的圖片:<br>
+OpenCL可以支援不同廠商的裝置
+<br>
+<img src='./OpenCL/structure1.jpg' alt="opencl" width = "508" height = "228"><br>
+<br>
+OpenCL的平行化架構和nvidia的CUDA同，由CPU當host作管控，
+配置許多需要做計算的部分給GPU，GPU底下則有很多計算的單位，
+單一的執行速度可能沒有CPU來的快，但同時可以執行非常多的計算指令，
+舉例來說: gtx1080ti的計算單元就高達 3584個，但像i7最多到8核心，只能同時計算8個，
+<br>
+<img src='./OpenCL/structure2.jpg' alt="opencl" width = "508" height = "228"><br>
+<br>
 
+參考資料: https://leonardoaraujosantos.gitbooks.io/opencl/content/chapter1.html<br>
 
 <hr>
 
