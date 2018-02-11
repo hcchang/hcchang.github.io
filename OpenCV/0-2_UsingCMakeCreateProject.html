@@ -39,8 +39,11 @@
 <p>
 &nbsp; &nbsp;用記事本創建一個CMakeLists.txt<br>
 &nbsp; &nbsp;裡面需要底下的程式碼，記得把相對應的OpenCamera.cpp(參考底下1-1專案)也一併放入相同資料夾，<br>
-
+<br>
 CMakeLists.txt 代碼:<br>
+<br>
+<br>
+#代碼開始
 <br>
 cmake_minimum_required(VERSION 2.6)<br>
 project(1-1_OpenCamera)<br>
@@ -48,6 +51,8 @@ find_package( OpenCV REQUIRED )<br>
 <br>
 add_executable(1-1_OpenCamera OpenCamera.cpp)<br>
 target_link_libraries(1-1_OpenCamera ${OpenCV_LIBS})<br>
+<br>
+#代碼結束
 <br>
 <br>
 在Windows底下，記得下載CMake程式<br>
