@@ -130,7 +130,6 @@ int main(int argc, char** argv)<br>
 	    
 <hr>	
 &nbsp; &nbsp;  <h3>章節 2. 將計算的記憶體從Host複製到GPU並實現簡易的MedianFilter範例</h3> <br>
-<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  遵循章節1部分的初始化步驟完，再來需要將給GPU編譯的code從檔案讀入到char*的buffer，<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  利用cl讀到的buffer來產生program, clCreateProgramWithSource(context, 1, &source, 0, 0)，<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  再來需要將host的buffer建立，和需要GPU建立的記憶體形式，需要讀取，寫入等等...<br>
@@ -504,7 +503,6 @@ __kernel void MedianFilter(__global uchar *srcImageN, __global uchar *srcImageF)
 <br>
 <hr>
 &nbsp; &nbsp;  <h3>章節 3. Android上的OpenCL範例</h3> <br>
-<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  因為手機Android的普及，並且上面高通使用的內建GPU晶片越來越好，所以我們也可以利用上面的GPU幫我們做一點事情<br>
 
 <br>
