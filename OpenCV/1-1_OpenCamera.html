@@ -23,39 +23,41 @@
 &nbsp; &nbsp; &nbsp; &nbsp;2. 開啟影片 VideoCapture::VideoCapture(const string& filename); <br>
 &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;filename: 為輸入的影片名稱，例如 xxx.avi<br><br>
  
-
+<hr>
+<p>
+運行結果: 
+<p>
+<img src='Result1-1_1.jpg' alt="lena" width = "712" height = "448">
 <hr>
 <p>
 範例程式: 
 <p>
 
-<p> #include &#60iostream&#62<br>
+#include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br><br>
-
-
-
+<br>
  int main(int argc, char** argv)<br>
  {<br><br>
  &nbsp; &nbsp;  cv::VideoCapture webCam(0);  // 宣告OpenCV中管理相機的物件 <br> 
  &nbsp; &nbsp;  if (!webCam.isOpened())<br>
  &nbsp; &nbsp;&nbsp; &nbsp;  return -1;<br><br>
- 
+ <br>
  &nbsp; &nbsp;	char key = 'i';<br>
  &nbsp; &nbsp;	cv::namedWindow("Image");<br><br>
- 
+ <br>
  &nbsp; &nbsp;	while (key != 'o')<br>
  &nbsp; &nbsp;	{<br>
  &nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat imgFrame;<br>
  &nbsp; &nbsp;&nbsp; &nbsp;		webCam >> imgFrame;<br>
- 
+ <br>
  &nbsp; &nbsp;&nbsp; &nbsp;		cv::imshow("Image", imgFrame);<br>
- 		
+ <br>		
  &nbsp; &nbsp;&nbsp; &nbsp;		key = cv::waitKey(30);<br>
  &nbsp; &nbsp;	}<br>
- 
+ <br>
  &nbsp; &nbsp;	return 0;<br>
- } </p>
+ } <br>
 
 
 </body>
