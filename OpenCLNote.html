@@ -57,6 +57,9 @@ OpenCL的平行化架構和nvidia的CUDA同，由CPU當host作管控，<br>
 <br>
 輸出結果: <br>
 <br>
+<img src='./OpenCL/structure3.jpg' alt="opencl" width = "508" height = "228"><br>
+<br>
+<br>
 範例程式: <br>
 <br>
 #include &#60iostream&#62<br>
@@ -284,18 +287,18 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;	cl_kernel MedianFilter = clCreateKernel(_program, "MedianFilter", 0);<br>
 <br>
 &nbsp; &nbsp;	for (int i = 0; i < 10; i++)<br>
-&nbsp; &nbsp;	{		
-&nbsp; &nbsp;&nbsp; &nbsp;		clSetKernelArg(MedianFilter, 0, sizeof(cl_mem), &cl_ImgN);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		clSetKernelArg(MedianFilter, 1, sizeof(cl_mem), &cl_ImgF);<br>
+&nbsp; &nbsp;	{<br>		
+&nbsp; &nbsp; &nbsp; &nbsp;		clSetKernelArg(MedianFilter, 0, sizeof(cl_mem), &cl_ImgN);<br>
+&nbsp; &nbsp; &nbsp; &nbsp;		clSetKernelArg(MedianFilter, 1, sizeof(cl_mem), &cl_ImgF);<br>
 <br>
-&nbsp; &nbsp;		const int workDimension = 2;<br>
-&nbsp; &nbsp;		size_t global_work_size[workDimension] = { imgN.cols, imgN.rows };<br>
-&nbsp; &nbsp;		cl_event evt;<br>
-&nbsp; &nbsp;		err = clEnqueueNDRangeKernel(queue, MedianFilter, 2, NULL, global_work_size, NULL, 0, NULL, &evt);<br>
-&nbsp; &nbsp;		if (err == CL_SUCCESS)<br>
-&nbsp; &nbsp;		{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;			err = clEnqueueReadBuffer(queue, cl_ImgF, CL_TRUE, 0, sizeof(cl_uchar)*imgSize, imgF.data, 0, 0, 0);<br>
-&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp; &nbsp;&nbsp;		const int workDimension = 2;<br>
+&nbsp; &nbsp; &nbsp;&nbsp;		size_t global_work_size[workDimension] = { imgN.cols, imgN.rows };<br>
+&nbsp; &nbsp; &nbsp;&nbsp;		cl_event evt;<br>
+&nbsp; &nbsp; &nbsp;&nbsp;		err = clEnqueueNDRangeKernel(queue, MedianFilter, 2, NULL, global_work_size, NULL, 0, NULL, &evt);<br>
+&nbsp; &nbsp; &nbsp;&nbsp;		if (err == CL_SUCCESS)<br>
+&nbsp; &nbsp; &nbsp;&nbsp;		{<br>
+&nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp;			err = clEnqueueReadBuffer(queue, cl_ImgF, CL_TRUE, 0, sizeof(cl_uchar)*imgSize, imgF.data, 0, 0, 0);<br>
+&nbsp; &nbsp; &nbsp;&nbsp;		}<br>
 &nbsp; &nbsp;	}<br>
 <br>
 &nbsp; &nbsp;	float t2 = 1000 * (cv::getTickCount() - t1) / cv::getTickFrequency();<br>
@@ -510,9 +513,9 @@ __kernel void MedianFilter(__global uchar *srcImageN, __global uchar *srcImageF)
 &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				index_k++;<br>
 &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
 &nbsp; &nbsp;&nbsp; &nbsp;		}<br>
-&nbsp; &nbsp;		int median = calcMedian(kArray, 25);<br>
-&nbsp; &nbsp;		index = idy*m_width + idx;<br>
-&nbsp; &nbsp;		srcImageF[index] = median;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		int median = calcMedian(kArray, 25);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		index = idy*m_width + idx;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		srcImageF[index] = median;<br>
 &nbsp; &nbsp;	}<br>
 }<br>
 <br>
