@@ -10,13 +10,10 @@
 <h1 style="color:blue;">2-1創建TrackBar可調值</h1>
 
 <p>2-1創建TrackBar可調值
-<p>
+</p>
 
 
-<img src='/1-2.bmp'  border='0'>
-
-
-<p> #include &#60iostream&#62<br>
+#include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
                                                                                                 <br>
@@ -69,39 +66,38 @@ void on_trackbarG(int value, void*)                                             
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	imshow("ImageRGBChannel", imgOut);                                                                <br>
 }                                                                                                   <br>
-&nbsp; &nbsp;                                                                                                     <br>
+<br>
 void on_trackbarB(int value, void*)                                                                 <br>
 {                                                                                                   <br>
-&nbsp; &nbsp; 	imgOut = imgOut.clone();                                                                          <br>
-&nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp; 	int tmpValue = 0;                                                                                 <br>
+&nbsp; &nbsp; 	imgOut = imgOut.clone();<br>
+&nbsp; &nbsp; 	int tmpValue = 0;<br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	for (int i = 0; i < imgResize.rows; i++)                                                          <br>
 &nbsp; &nbsp; 	{                                                                                                 <br>
 &nbsp; &nbsp;&nbsp; &nbsp; 		for (int j = 0; j < imgResize.cols; j++)                                                        <br>
 &nbsp; &nbsp;&nbsp; &nbsp; 		{                                                                                               <br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 			tmpValue = (int)imgResize.at<cv::Vec3b>(i, j)[0] * (value) / 100;                             <br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 			imgOut.at<cv::Vec3b>(i, j)[0] = tmpValue;                                                     <br>
-&nbsp; &nbsp;&nbsp; &nbsp; 		}                                                                                               <br>
-&nbsp; &nbsp; 	}                                                                                                 <br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 			tmpValue = (int)imgResize.at<cv::Vec3b>(i, j)[0] * (value) / 100;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; 			imgOut.at<cv::Vec3b>(i, j)[0] = tmpValue;<br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		}<br>
+&nbsp; &nbsp; 	}<br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	imshow("ImageRGBChannel", imgOut);                                                                <br>
 }                                                                                                   <br>
 &nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp; int main(int argc, char** argv)                                                                     <br>
-&nbsp; &nbsp; {                                                                                                   <br>
+int main(int argc, char** argv)                                                                     <br>
+{                                                                                                   <br>
 &nbsp; &nbsp; 	/// Read image ( same size, same type )                                                           <br>
 &nbsp; &nbsp; 	img = cv::imread("Image.jpg");                                                                    <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	if (!img.data) {                                                                                  <br>
-&nbsp; &nbsp; 		std::cout << "無法讀到檔案" << std::endl;                                                       <br>
-&nbsp; &nbsp; 		return -1;                                                                                      <br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		std::cout << "無法讀到檔案" << std::endl;                                                       <br>
+&nbsp; &nbsp;&nbsp; &nbsp; 		return -1;                                                                                      <br>
 &nbsp; &nbsp; 	}                                                                                                 <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	//將影像縮小四倍                                                                                  <br>
 &nbsp; &nbsp; 	int width = img.cols;                                                                             <br>
 &nbsp; &nbsp; 	int height = img.rows;                                                                            <br>
-&nbsp; &nbsp;                                                                                                     <br>
+<br>
 &nbsp; &nbsp; 	cv::resize(img, imgResize, cv::Size(width / 4, height / 4));                                      <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	imgOut = imgResize.clone();                                                                       <br>
@@ -127,12 +123,10 @@ void on_trackbarB(int value, void*)                                             
 &nbsp; &nbsp; 	on_trackbarG(g_slider, 0);                                                                        <br>
 &nbsp; &nbsp; 	on_trackbarB(b_slider, 0);                                                                        <br>
 &nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	/// Wait until user press some key                                                                <br>
 &nbsp; &nbsp; 	cv::waitKey(0);                                                                                   <br>
 &nbsp; &nbsp; 	return 0;                                                                                         <br>
-&nbsp; &nbsp; }                                                                                                   <br>
- </p>
+}                                                                                                   <br>
 
 
 
