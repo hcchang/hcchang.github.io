@@ -32,8 +32,8 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp; if (!chessImg.data)<br>
 &nbsp; &nbsp; {<br>
 &nbsp; &nbsp;&nbsp;&nbsp; std::cout << "無法讀取影像" << std::endl;<br>
-&nbsp; &nbsp;&nbsp;&nbsp; return -1;
-&nbsp; &nbsp; {<br>
+&nbsp; &nbsp;&nbsp;&nbsp; return -1;<br>
+&nbsp; &nbsp; }<br>
 <br>
 &nbsp; &nbsp; cv::cvtColor(chessImg, chessImgGray, CV_RGB2GRAY);<br>
 &nbsp; &nbsp; int count = cv::findChessboardCorners(chessImgGray, cv::Size(nx, ny), corners, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FILTER_QUADS);<br>
