@@ -12,37 +12,35 @@
 <p>4-1_Canny邊緣偵測器
 <p>
 
-
-
-<p> #include &#60iostream&#62<br>
+<br>
+<br>
+#include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
-
+<br>
 int main(int argc, char** argv)<br>
 {<br>
 &nbsp; &nbsp;	cv::Mat img = cv::imread("Image.png");<br>
 &nbsp; &nbsp;	cv::Mat img_gray;<br>
 &nbsp; &nbsp;	cv::Mat img_canny;<br>
-
-&nbsp; &nbsp;	//顯示一些影像的特性
+<br>
+&nbsp; &nbsp;	//顯示一些影像的特性<br>
 &nbsp; &nbsp;	if (img.data) <br>
 &nbsp; &nbsp;	{ <br>
-&nbsp; &nbsp;		cv::cvtColor(img,img_gray,CV_RGB2GRAY); <br>
-&nbsp; &nbsp;		cv::Canny(img_gray,img_canny,30,50,3,false); <br>
-
-
-&nbsp; &nbsp;		cv::imshow("Canny", img_canny); <br>
-&nbsp; &nbsp;		cv::waitKey(0); <br>
-
-
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::cvtColor(img,img_gray,CV_RGB2GRAY); <br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Canny(img_gray,img_canny,30,50,3,false); <br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::imshow("Canny", img_canny); <br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::waitKey(0); <br>
+<br>
 &nbsp; &nbsp;	} <br>
 &nbsp; &nbsp;	else <br>
 &nbsp; &nbsp;	{<br>
-&nbsp; &nbsp;		std::cout << "讀不到影像" << std::endl;
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "讀不到影像" << std::endl;<br>
  <br>
-&nbsp; &nbsp;		return -1; <br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return -1; <br>
 &nbsp; &nbsp;	} <br>
-
+<br>
 &nbsp; &nbsp;	return 0; <br>
 } <br>
  </p>
