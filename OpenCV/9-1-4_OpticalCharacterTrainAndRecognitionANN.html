@@ -2,78 +2,174 @@
 <html>
 	<head>   	
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>8-1_OpenCVPeopleDetect</title>
+		<title>9-1-4_OpticalCharacterTrainAndRecognitionANN</title>
   </head>
 
 <body>
 
-<h1 style="color:blue;">8-1利用OpenCV自帶行人偵測</h1>
+<h1 style="color:blue;">9-1-4光學字元訓練辨識(類神經)</h1>
 
-<p>8-1利用OpenCV自帶行人偵測
+<p>9-1-4光學字元訓練辨識(類神經)
 <p>
 
 #include &#60iostream&#62<br>
-#include &#60stdexcept&#62<br>
-#include &#60opencv2/objdetect/objdetect.hpp&#62<br>
+#include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
-#include &#60opencv2/imgproc/imgproc.hpp&#62<br>
-#include &#60opencv2/video/video.hpp&#62<br>
-#include &#60string&#62<br>
+#include &#vector&#62<br>
+#include &#algorithm&#62<br>
+<br>
+<br>
+const int numCharacters = 30;<br>
+const char strCharacters[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z' };<br>
+<br>
+void train(CvANN_MLP&  ann, cv::Mat TrainData, cv::Mat classes, int nlayers)<br>
+{<br>
+&nbsp; &nbsp;	cv::Mat layers(1, 3, CV_32SC1);<br>
+&nbsp; &nbsp;	layers.at<int>(0) = TrainData.cols;<br>
+&nbsp; &nbsp;	layers.at<int>(1) = nlayers;<br>
+&nbsp; &nbsp;	layers.at<int>(2) = numCharacters;<br>
+&nbsp; &nbsp;	ann.create(layers, CvANN_MLP::SIGMOID_SYM, 1, 1);<br>
+<br>
+&nbsp; &nbsp;	//Prepare trainClases<br>
+&nbsp; &nbsp;	//Create a mat with n trained data by m classes<br>
+&nbsp; &nbsp;	cv::Mat trainClasses;<br>
+&nbsp; &nbsp;	trainClasses.create(TrainData.rows, numCharacters, CV_32FC1);<br>
+&nbsp; &nbsp;	for (int i = 0; i < trainClasses.rows; i++)
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (int k = 0; k < trainClasses.cols; k++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			//If class of data i is same than a k class<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (k == classes.at<int>(i))<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				trainClasses.at<float>(i, k) = 1;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				trainClasses.at<float>(i, k) = 0;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	cv::Mat weights(1, TrainData.rows, CV_32FC1, cv::Scalar::all(1));<br>
+&nbsp; &nbsp;	//Learn classifier<br>
+&nbsp; &nbsp;	ann.train(TrainData, trainClasses, weights);<br>
+}<br>
+<br>
+#define HORIZONTAL    1<br>
+#define VERTICAL    0<br>
+<br>
+cv::Mat ProjectedHistogram(cv::Mat img, int t)<br>
+{<br>
+&nbsp; &nbsp;	int sz = (t) ? img.rows : img.cols;<br>
+&nbsp; &nbsp;	cv::Mat mhist = cv::Mat::zeros(1, sz, CV_32F);<br>
+<br>
+&nbsp; &nbsp;	for (int j = 0; j<sz; j++){<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat data = (t) ? img.row(j) : img.col(j);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		mhist.at<float>(j) = countNonZero(data);<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	//Normalize histogram<br>
+&nbsp; &nbsp;	double min, max;<br>
+&nbsp; &nbsp;	minMaxLoc(mhist, &min, &max);<br>
+<br>
+&nbsp; &nbsp;	if (max>0)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		mhist.convertTo(mhist, -1, 1.0f / max, 0);<br>
+<br>
+&nbsp; &nbsp;	return mhist;<br>
+}<br>
 <br>
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;	cv::HOGDescriptor _hog;<br>
-&nbsp; &nbsp;	_hog.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());<br>
-&nbsp; &nbsp;	const std::string _videoName = "vtest.avi";<br>
-&nbsp; &nbsp;	cv::VideoCapture _video(_videoName);<br>
-&nbsp; &nbsp;	cv::Mat _imgMat;<br>
+&nbsp; &nbsp;	cv::Mat numImg = cv::imread("file0.bmp", 0);<br>
 <br>
-&nbsp; &nbsp;	if (!_video.isOpened())<br>
-&nbsp; &nbsp;	{
-&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取影片" << std::endl;<br>
+&nbsp; &nbsp;	cv::Mat map_x, map_y;<br>
+<br>
+&nbsp; &nbsp;	map_x.create(numImg.size(), CV_32FC1);<br>
+&nbsp; &nbsp;	map_y.create(numImg.size(), CV_32FC1);<br>
+<br>
+&nbsp; &nbsp;	cv::Mat numImgProce;<br>
+<br>
+&nbsp; &nbsp;	for (int i = 0; i < numImg.rows; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (int j = 0; j < numImg.cols; j++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (j > numImg.cols*0.15 && j < numImg.cols*0.85)
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				map_x.at<float>(i, j) = 1.428 * (j - numImg.cols*0.15) + 0.5;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				map_x.at<float>(i, j) = 0;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			map_y.at<float>(i, j) = i;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	cv::remap(numImg, numImgProce, map_x, map_y, CV_INTER_LINEAR, cv::BORDER_CONSTANT, cv::Scalar(0));<br>
+<br>
+&nbsp; &nbsp;	numImg = numImgProce.clone();<br>
+<br>
+&nbsp; &nbsp;	cv::imwrite("input.jpg", numImg);<br>
+<br>	
+&nbsp; &nbsp;	if (!numImg.data)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取圖片" << std::endl;<br>
 &nbsp; &nbsp;&nbsp; &nbsp;		return -1;<br>
 &nbsp; &nbsp;	}<br>
-<br>	
-&nbsp; &nbsp;	for (;;)<br>
+<br>
+&nbsp; &nbsp;	CvANN_MLP  ann;<br>
+<br>
+&nbsp; &nbsp;	cv::FileStorage fs;<br>
+&nbsp; &nbsp;	fs.open("OCR.xml", cv::FileStorage::READ);<br>
+&nbsp; &nbsp;	cv::Mat TrainingData;<br>
+&nbsp; &nbsp;	cv::Mat Classes;<br>
+&nbsp; &nbsp;	fs["TrainingDataF15"] >> TrainingData;<br>
+&nbsp; &nbsp;	fs["classes"] >> Classes;<br>
+<br>
+&nbsp; &nbsp;	train(ann, TrainingData, Classes, 10);<br>
+<br>
+<br>
+&nbsp; &nbsp;	cv::Mat vhist = ProjectedHistogram(numImg, VERTICAL);<br>
+&nbsp; &nbsp;	cv::Mat hhist = ProjectedHistogram(numImg, HORIZONTAL);<br>
+<br>
+&nbsp; &nbsp;	//Low data feature<br>
+&nbsp; &nbsp;	cv::Mat lowData;<br>
+&nbsp; &nbsp;	cv::resize(numImg, lowData, cv::Size(15, 15));<br>
+<br>
+<br>
+&nbsp; &nbsp;	//Last 10 is the number of moments components<br>
+&nbsp; &nbsp;	int numCols = vhist.cols + hhist.cols + lowData.cols*lowData.cols;<br>
+<br>
+&nbsp; &nbsp;	cv::Mat out = cv::Mat::zeros(1, numCols, CV_32F);<br>
+&nbsp; &nbsp;	//Asign values to feature<br>
+&nbsp; &nbsp;	int j = 0;<br>
+&nbsp; &nbsp;	for (int i = 0; i<vhist.cols; i++)<br>
 &nbsp; &nbsp;	{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		_video >> _imgMat;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		if (_imgMat.empty())<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			return -1;<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		std::vector<cv::Rect> found, found_filtered;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		double t = (double)cv::getTickCount();<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		_hog.detectMultiScale(_imgMat, found, 0, cv::Size(8, 8), cv::Size(32, 32), 1.05, 2);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		t = (double)cv::getTickCount() - t;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "偵測時間: " << (t*1000. / cv::getTickFrequency()) << " ms" << std::endl;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		for (size_t i = 0; i < found.size(); i++)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Rect r = found[i];<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			size_t j;<br>
-<br>			
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			// 在大的偵測框內，不需要裡面再有小偵測框<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			for (j = 0; j < found.size(); j++)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				if (j != i && (r & found[j]) == r)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;					break;<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (j == found.size())<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				found_filtered.push_back(r);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		for (size_t i = 0; i < found_filtered.size(); i++)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Rect r = found_filtered[i];<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			//一般HOG的偵測會比實際的大，所以縮小偵測的範圍<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.x += cvRound(r.width*0.1);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.width = cvRound(r.width*0.8);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.y += cvRound(r.height*0.07);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.height = cvRound(r.height*0.8);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			rectangle(_imgMat, r.tl(), r.br(), cv::Scalar(0, 255, 0), 3);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		cv::imshow("people detection", _imgMat);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		cv::waitKey(30);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		out.at<float>(j) = vhist.at<float>(i);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		j++;<br>
 &nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	for (int i = 0; i<hhist.cols; i++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		out.at<float>(j) = hhist.at<float>(i);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		j++;<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	for (int x = 0; x<lowData.cols; x++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (int y = 0; y<lowData.rows; y++){<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			out.at<float>(j) = (float)lowData.at<unsigned char>(x, y);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			j++;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+<br>
+<br>
+&nbsp; &nbsp;	int resultClass = -1;<br>
+&nbsp; &nbsp;	cv::Mat output(1, numCharacters, CV_32FC1);<br>
+&nbsp; &nbsp;	ann.predict(out, output);<br>
+&nbsp; &nbsp;	cv::Point maxLoc;<br>
+&nbsp; &nbsp;	double maxVal;<br>
+&nbsp; &nbsp;	minMaxLoc(output, 0, &maxVal, 0, &maxLoc);<br>
+<br>
+&nbsp; &nbsp;	resultClass = maxLoc.x;<br>
+<br>
+&nbsp; &nbsp;	char resultChar = strCharacters[resultClass];<br>
+<br>
+&nbsp; &nbsp;	std::cout << "result is: " << resultChar << std::endl;<br>
 &nbsp; &nbsp;	return 0;<br>
 } <br>
  </p>

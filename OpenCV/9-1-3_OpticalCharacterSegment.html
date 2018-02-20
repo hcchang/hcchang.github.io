@@ -2,78 +2,145 @@
 <html>
 	<head>   	
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>8-1_OpenCVPeopleDetect</title>
+		<title>9-1-3_OpticalCharacterSegment</title>
   </head>
 
 <body>
 
-<h1 style="color:blue;">8-1利用OpenCV自帶行人偵測</h1>
+<h1 style="color:blue;">9-1-3字元切割</h1>
 
-<p>8-1利用OpenCV自帶行人偵測
+<p>9-1-3字元切割
 <p>
-
+<br>
 #include &#60iostream&#62<br>
-#include &#60stdexcept&#62<br>
-#include &#60opencv2/objdetect/objdetect.hpp&#62<br>
+#include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
-#include &#60opencv2/imgproc/imgproc.hpp&#62<br>
-#include &#60opencv2/video/video.hpp&#62<br>
-#include &#60string&#62<br>
+#include &#60vector&#62<br>
+#include &#60algorithm&#62<br>
+<br>
+bool verifyOCSizes(cv::Mat r){<br>
+&nbsp; &nbsp;	//Char sizes 45x77<br>
+&nbsp; &nbsp;	float aspect = 45.0f / 77.0f;<br>
+&nbsp; &nbsp;	float charAspect = (float)r.cols / (float)r.rows;<br>
+&nbsp; &nbsp;	float error = 0.35;<br>
+&nbsp; &nbsp;	float minHeight = 15;<br>
+&nbsp; &nbsp;	float maxHeight = 28;<br>
+&nbsp; &nbsp;	//We have a different aspect ratio for number 1, and it can be ~0.2<br>
+&nbsp; &nbsp;	float minAspect = 0.2;<br>
+&nbsp; &nbsp;	float maxAspect = aspect + aspect*error;<br>
+&nbsp; &nbsp;	//area of pixels<br>
+&nbsp; &nbsp;	float area = countNonZero(r);<br>
+&nbsp; &nbsp;	//bb area<br>
+&nbsp; &nbsp;	float bbArea = r.cols*r.rows;<br>
+&nbsp; &nbsp;	//% of pixel in area<br>
+&nbsp; &nbsp;	float percPixels = area / bbArea;<br>
+<br>
+&nbsp; &nbsp;	std::cout << "Aspect: " << aspect << " [" << minAspect << "," << maxAspect << "] " << "Area " << percPixels << " Char aspect " << charAspect << " Height char " << r.rows << "\n";<br>
+<br>	
+&nbsp; &nbsp;	if (percPixels < 0.8 && charAspect > minAspect && charAspect < maxAspect && r.rows >= minHeight && r.rows < maxHeight)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return true;<br>
+&nbsp; &nbsp;	else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return false;<br>
+<br>
+}<br>
+<br>
+<br>
+cv::Mat preprocessChar(cv::Mat in){<br>
+&nbsp; &nbsp;	//Remap image<br>
+&nbsp; &nbsp;	int h = in.rows;<br>
+&nbsp; &nbsp;	int w = in.cols;<br>
+&nbsp; &nbsp;	cv::Mat transformMat = cv::Mat::eye(2, 3, CV_32F);<br>
+&nbsp; &nbsp;	int m = std::max(w, h);<br>
+&nbsp; &nbsp;	transformMat.at<float>(0, 2) = m / 2 - w / 2;<br>
+&nbsp; &nbsp;	transformMat.at<float>(1, 2) = m / 2 - h / 2;<br>
+<br>
+&nbsp; &nbsp;	cv::Mat warpImage(m, m, in.type());<br>
+&nbsp; &nbsp;	warpAffine(in, warpImage, transformMat, warpImage.size(), cv::INTER_LINEAR, cv::BORDER_CONSTANT, cv::Scalar(0));<br>
+<br>
+&nbsp; &nbsp;	cv::Mat out;<br>
+&nbsp; &nbsp;	cv::resize(warpImage, out, cv::Size(20, 20));<br>
+<br>
+&nbsp; &nbsp;	return out;<br>
+}<br>
+<br>
 <br>
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;	cv::HOGDescriptor _hog;<br>
-&nbsp; &nbsp;	_hog.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());<br>
-&nbsp; &nbsp;	const std::string _videoName = "vtest.avi";<br>
-&nbsp; &nbsp;	cv::VideoCapture _video(_videoName);<br>
-&nbsp; &nbsp;	cv::Mat _imgMat;<br>
-<br>
-&nbsp; &nbsp;	if (!_video.isOpened())<br>
-&nbsp; &nbsp;	{
-&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取影片" << std::endl;<br>
+&nbsp; &nbsp;	cv::Mat carPlate = cv::imread("carPlate.bmp", 0);<br>
+<br>	
+&nbsp; &nbsp;	if (!carPlate.data)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取圖片" << std::endl;<br>
 &nbsp; &nbsp;&nbsp; &nbsp;		return -1;<br>
 &nbsp; &nbsp;	}<br>
-<br>	
-&nbsp; &nbsp;	for (;;)<br>
+<br>
+&nbsp; &nbsp;	cv::Mat imgBinary;<br>
+&nbsp; &nbsp;	cv::threshold(carPlate, imgBinary, 60, 255, CV_THRESH_BINARY_INV);<br>
+<br>
+&nbsp; &nbsp;	cv::imshow("Threshold plate", imgBinary);<br>
+&nbsp; &nbsp;	cv::waitKey(0);	<br>
+<br>
+&nbsp; &nbsp;	cv::Mat imgContour;<br>
+&nbsp; &nbsp;	imgBinary.copyTo(imgContour);<br>
+<br>
+&nbsp; &nbsp;	//Find contours of possibles characters<br>
+&nbsp; &nbsp;	std::vector< std::vector< cv::Point> > contours;<br>
+&nbsp; &nbsp;	findContours(imgContour,<br>
+&nbsp; &nbsp;		contours, // a vector of contours<br>
+&nbsp; &nbsp;		CV_RETR_EXTERNAL, // retrieve the external contours<br>
+&nbsp; &nbsp;		CV_CHAIN_APPROX_NONE); // all pixels of each contours<br>
+<br>
+&nbsp; &nbsp;	// Draw blue contours on a white image<br>
+&nbsp; &nbsp;	cv::Mat result;<br>
+&nbsp; &nbsp;	imgBinary.copyTo(result);<br>
+&nbsp; &nbsp;	cvtColor(result, result, CV_GRAY2RGB);<br>
+&nbsp; &nbsp;	cv::drawContours(result, contours,<br>
+&nbsp; &nbsp;		-1, // draw all contours<br>
+&nbsp; &nbsp;		cv::Scalar(255, 0, 0), // in blue<br>
+&nbsp; &nbsp;		1); // with a thickness of 1<br>
+<br>
+&nbsp; &nbsp;	//Start to iterate to each contour founded<br>
+&nbsp; &nbsp;	std::vector<std::vector<cv::Point> >::iterator itc = contours.begin();<br>
+<br>
+&nbsp; &nbsp;	std::vector<cv::Mat> output;<br>
+<br>
+&nbsp; &nbsp;	//Remove patch that are no inside limits of aspect ratio and area.<br>
+&nbsp; &nbsp;	int i = 0;<br>
+&nbsp; &nbsp;	while (itc != contours.end()) <br>
 &nbsp; &nbsp;	{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		_video >> _imgMat;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		if (_imgMat.empty())<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			return -1;<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		std::vector<cv::Rect> found, found_filtered;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		double t = (double)cv::getTickCount();<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		_hog.detectMultiScale(_imgMat, found, 0, cv::Size(8, 8), cv::Size(32, 32), 1.05, 2);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		t = (double)cv::getTickCount() - t;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "偵測時間: " << (t*1000. / cv::getTickFrequency()) << " ms" << std::endl;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		for (size_t i = 0; i < found.size(); i++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//Create bounding rect of object<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Rect mr = cv::boundingRect(cv::Mat(*itc));<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		rectangle(result, mr, cv::Scalar(0, 255, 0));<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//Crop image<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat auxRoi(imgBinary, mr);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (verifyOCSizes(auxRoi))<br>
 &nbsp; &nbsp;&nbsp; &nbsp;		{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Rect r = found[i];<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			size_t j;<br>
-<br>			
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			// 在大的偵測框內，不需要裡面再有小偵測框<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			for (j = 0; j < found.size(); j++)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				if (j != i && (r & found[j]) == r)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;					break;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			auxRoi = preprocessChar(auxRoi); //20x20<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Mat segChar = auxRoi.clone();<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			output.push_back(segChar);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			rectangle(result, mr, cv::Scalar(0, 125, 255));<br>
 <br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (j == found.size())<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				found_filtered.push_back(r);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Mat largeChar;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::resize(segChar, largeChar, cv::Size(200,200));<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::imshow("char", largeChar);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::waitKey(0);<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			std::string filename = "file";<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			int num = i;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			std::stringstream numS;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			numS << i;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			filename = filename + numS.str() + ".bmp";<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::imwrite(filename, segChar);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			i++;<br>
 &nbsp; &nbsp;&nbsp; &nbsp;		}<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		for (size_t i = 0; i < found_filtered.size(); i++)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Rect r = found_filtered[i];<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			//一般HOG的偵測會比實際的大，所以縮小偵測的範圍<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.x += cvRound(r.width*0.1);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.width = cvRound(r.width*0.8);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.y += cvRound(r.height*0.07);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.height = cvRound(r.height*0.8);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			rectangle(_imgMat, r.tl(), r.br(), cv::Scalar(0, 255, 0), 3);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		cv::imshow("people detection", _imgMat);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		cv::waitKey(30);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		++itc;<br>
 &nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	std::cout << "Num chars: " << output.size() << "\n";<br>
+<br>	
+&nbsp; &nbsp;	cv::imshow("SEgmented Chars", result);<br>
+<br>	
 &nbsp; &nbsp;	return 0;<br>
 } <br>
  </p>

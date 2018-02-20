@@ -2,78 +2,225 @@
 <html>
 	<head>   	
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>8-1_OpenCVPeopleDetect</title>
+		<title>9-1-1_CarPlatSegment</title>
   </head>
 
 <body>
 
-<h1 style="color:blue;">8-1利用OpenCV自帶行人偵測</h1>
+<h1 style="color:blue;">9-1-1車牌切割</h1>
 
-<p>8-1利用OpenCV自帶行人偵測
+<p>9-1-1車牌切割
 <p>
 
 #include &#60iostream&#62<br>
-#include &#60stdexcept&#62<br>
-#include &#60opencv2/objdetect/objdetect.hpp&#62<br>
+#include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
-#include &#60opencv2/imgproc/imgproc.hpp&#62<br>
-#include &#60opencv2/video/video.hpp&#62<br>
-#include &#60string&#62<br>
+#include &#60vector&#62<br>
+#include &#60algorithm&#62<br>
+<br>
+bool verifyCarPlateSizes(cv::RotatedRect mAr)<br>
+{<br>
+&nbsp; &nbsp;	float error = 0.4; //車牌面積比例的誤差<br>
+&nbsp; &nbsp;	//一般台灣車牌的比例，初估為2.6<br>
+&nbsp; &nbsp;	float aspect = 2.6; <br>
+&nbsp; &nbsp;	//多大的面積pxiel忽略不偵測<br>
+&nbsp; &nbsp;	int min = 15 * aspect * 15; <br>
+&nbsp; &nbsp;	int max = 125 * aspect * 125; <br>
+<br>
+&nbsp; &nbsp;	float rmin = aspect - aspect*error;<br>
+&nbsp; &nbsp;	float rmax = aspect + aspect*error;<br>
+<br>
+&nbsp; &nbsp;	int area = mAr.size.height * mAr.size.width; //計算面積<br>
+<br>
+&nbsp; &nbsp;	float r = (float)mAr.size.width / (float)mAr.size.height;<br>
+&nbsp; &nbsp;	if (r<1)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		r = (float)mAr.size.height / (float)mAr.size.width;<br>
+<br>
+&nbsp; &nbsp;	if ((area < min || area > max) || (r < rmin || r > rmax))<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return false;<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	else<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return true;<br>
+&nbsp; &nbsp;	}<br>
+<br>
+}<br>
+<br>
+cv::Mat histeq(cv::Mat in)<br>
+{<br>
+&nbsp; &nbsp;	cv::Mat out(in.size(), in.type());<br>
+&nbsp; &nbsp;	if (in.channels() == 3){<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat hsv;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::vector<cv::Mat> hsvSplit;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::cvtColor(in, hsv, CV_BGR2HSV);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::split(hsv, hsvSplit);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::equalizeHist(hsvSplit[2], hsvSplit[2]);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::merge(hsvSplit, hsv);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::cvtColor(hsv, out, CV_HSV2BGR);<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	else if (in.channels() == 1)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::equalizeHist(in, out);<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	return out;<br>
+}<br>
+<br>
+void carPlateSegment(cv::Mat& carImg, cv::Mat& carImgColor, int& num)<br>
+{<br>
+<br>
+&nbsp; &nbsp;	//先除雜訊<br>
+&nbsp; &nbsp;	cv::blur(carImg, carImg, cv::Size(5, 5));<br>
+<br>
+&nbsp; &nbsp;	//先做sobel找出邊緣<br>
+&nbsp; &nbsp;	cv::Mat sobleImg;<br>
+<br>
+&nbsp; &nbsp;	cv::Sobel(carImg, sobleImg, CV_8U, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);<br>
+<br>
+&nbsp; &nbsp;	//將偵測出邊緣的圖片二值化<br>
+&nbsp; &nbsp;	cv::Mat binartEdgeImg;<br>
+&nbsp; &nbsp;	cv::threshold(sobleImg, binartEdgeImg, 0, 255, CV_THRESH_OTSU + CV_THRESH_BINARY);<br>
+<br>
+&nbsp; &nbsp;	//利用closing結合邊緣試著將多邊緣區域結合成一圖塊(blob)
+&nbsp; &nbsp;	cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(17, 3));
+&nbsp; &nbsp;	cv::morphologyEx(binartEdgeImg, binartEdgeImg, CV_MOP_CLOSE, element);
+<br>
+&nbsp; &nbsp;	//找連結的圖塊的輪廓<br>
+&nbsp; &nbsp;	std::vector< std::vector< cv::Point> > contours;<br>
+&nbsp; &nbsp;	findContours(binartEdgeImg, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);<br>
+<br>
+&nbsp; &nbsp;	//開始處理偵測到的輪廓<br>
+&nbsp; &nbsp;	std::vector<std::vector<cv::Point> >::iterator itc = contours.begin();<br>
+&nbsp; &nbsp;	std::vector<cv::RotatedRect> rects;<br>
+<br>
+&nbsp; &nbsp;	//Remove patch that are no inside limits of aspect ratio and area.  <br>  
+&nbsp; &nbsp;	while (itc != contours.end())<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//Create bounding rect of object<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::RotatedRect mAr = cv::minAreaRect(cv::Mat(*itc));<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (!verifyCarPlateSizes(mAr))<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			itc = contours.erase(itc);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			++itc;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			rects.push_back(mAr);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	cv::Mat result;<br>
+&nbsp; &nbsp;	carImgColor.copyTo(result);<br>
+&nbsp; &nbsp;	cv::drawContours(result, contours,<br>
+&nbsp; &nbsp;		-1, // draw all contours<br>
+&nbsp; &nbsp;		cv::Scalar(255, 0, 0), // in blue<br>
+&nbsp; &nbsp;		1); // with a thickness of 1<br>
+<br>
+&nbsp; &nbsp;	for (int i = 0; i< rects.size(); i++)<br>
+&nbsp; &nbsp;	{<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//為了找到更適合的車牌區間，利用洪水法的方法來填充相似的色塊，以及配合contour找出的圖塊邊緣來判斷<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::circle(result, rects[i].center, 3, cv::Scalar(0, 255, 0), -1);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//get the min size between width and height<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		float minSize = (rects[i].size.width < rects[i].size.height) ? rects[i].size.width : rects[i].size.height;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		minSize = minSize - minSize*0.5;
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat mask;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		mask.create(carImgColor.rows + 2, carImgColor.cols + 2, CV_8UC1);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		mask = cv::Scalar::all(0);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		int loDiff = 30;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		int upDiff = 30;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		int connectivity = 4;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		int newMaskVal = 255;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		int NumSeeds = 10;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Rect ccomp;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		int flags = connectivity + (newMaskVal << 8) + CV_FLOODFILL_FIXED_RANGE + CV_FLOODFILL_MASK_ONLY;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (int j = 0; j<NumSeeds; j++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Point seed;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			seed.x = rects[i].center.x + rand() % (int)minSize - (minSize / 2);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			seed.y = rects[i].center.y + rand() % (int)minSize - (minSize / 2);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::circle(result, seed, 1, cv::Scalar(0, 255, 255), -1);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			int area = floodFill(carImgColor, mask, seed, cv::Scalar(255, 0, 0), &ccomp, cv::Scalar(loDiff, loDiff, loDiff), cv::Scalar(upDiff, upDiff, upDiff), connectivity | (newMaskVal << 8) | CV_FLOODFILL_FIXED_RANGE | CV_FLOODFILL_MASK_ONLY);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::imshow("MASK", mask);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::waitKey(0);<br>
+<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//Check new floodfill mask match for a correct patch.<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//Get all points detected for get Minimal rotated Rect<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::vector<cv::Point> pointsInterest;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat_<uchar>::iterator itMask = mask.begin<uchar>();<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::Mat_<uchar>::iterator end = mask.end<uchar>();<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (; itMask != end; ++itMask)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (*itMask == 255)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				pointsInterest.push_back(itMask.pos());<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::RotatedRect minRect = minAreaRect(pointsInterest);<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (verifyCarPlateSizes(minRect))<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			// rotated rectangle drawing <br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Point2f rect_points[4]; minRect.points(rect_points);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			for (int j = 0; j < 4; j++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				line(result, rect_points[j], rect_points[(j + 1) % 4], cv::Scalar(0, 0, 255), 1, 8);<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			//Get rotation matrix<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			float r = (float)minRect.size.width / (float)minRect.size.height;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			float angle = minRect.angle;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (r<1)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				angle = 90 + angle;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Mat rotmat = getRotationMatrix2D(minRect.center, angle, 1);<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			//Create and rotate image<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Mat img_rotated;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::warpAffine(carImgColor, img_rotated, rotmat, carImgColor.size(), CV_INTER_CUBIC);<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			//Crop image<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Size rect_size = minRect.size;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (r < 1)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				std::swap(rect_size.width, rect_size.height);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Mat img_crop;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			getRectSubPix(img_rotated, rect_size, minRect.center, img_crop);<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Mat resultResized;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			resultResized.create(33, 110, CV_8UC3);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			resize(img_crop, resultResized, resultResized.size(), 0, 0, cv::INTER_CUBIC);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			//Equalize croped image<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Mat grayResult;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::cvtColor(resultResized, grayResult, CV_BGR2GRAY);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::blur(grayResult, grayResult, cv::Size(3, 3));<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			grayResult = histeq(grayResult);<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			std::string filename = "file";<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			std::stringstream numS;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			numS << i;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			filename = filename + numS.str() + ".bmp";<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::imshow("carPlate", grayResult);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::waitKey(0);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::imwrite(filename, grayResult);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			num++;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+<br>
+}<br>
+<br>
 <br>
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;	cv::HOGDescriptor _hog;<br>
-&nbsp; &nbsp;	_hog.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());<br>
-&nbsp; &nbsp;	const std::string _videoName = "vtest.avi";<br>
-&nbsp; &nbsp;	cv::VideoCapture _video(_videoName);<br>
-&nbsp; &nbsp;	cv::Mat _imgMat;<br>
+&nbsp; &nbsp;	cv::Mat carImgInColor = cv::imread("car01.jpg", 1);<br>
 <br>
-&nbsp; &nbsp;	if (!_video.isOpened())<br>
-&nbsp; &nbsp;	{
-&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "無法讀取影片" << std::endl;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		return -1;<br>
-&nbsp; &nbsp;	}<br>
-<br>	
-&nbsp; &nbsp;	for (;;)<br>
-&nbsp; &nbsp;	{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		_video >> _imgMat;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		if (_imgMat.empty())<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			return -1;<br>
+&nbsp; &nbsp;	cv::Mat carImgIn = cv::imread("car01.jpg", 0);<br>
 <br>
-&nbsp; &nbsp;&nbsp; &nbsp;		std::vector<cv::Rect> found, found_filtered;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		double t = (double)cv::getTickCount();<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		_hog.detectMultiScale(_imgMat, found, 0, cv::Size(8, 8), cv::Size(32, 32), 1.05, 2);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		t = (double)cv::getTickCount() - t;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		std::cout << "偵測時間: " << (t*1000. / cv::getTickFrequency()) << " ms" << std::endl;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		for (size_t i = 0; i < found.size(); i++)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Rect r = found[i];<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			size_t j;<br>
-<br>			
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			// 在大的偵測框內，不需要裡面再有小偵測框<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			for (j = 0; j < found.size(); j++)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				if (j != i && (r & found[j]) == r)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;					break;<br>
+&nbsp; &nbsp;	cv::Mat carImg, carImgColor;<br>
 <br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (j == found.size())<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				found_filtered.push_back(r);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	cv::resize(carImgIn, carImg, cv::Size(800,600));<br>
+&nbsp; &nbsp;	cv::resize(carImgInColor, carImgColor, cv::Size(800, 600));<br>
 <br>
-&nbsp; &nbsp;&nbsp; &nbsp;		for (size_t i = 0; i < found_filtered.size(); i++)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cv::Rect r = found_filtered[i];<br>
+&nbsp; &nbsp;	int num = 0;<br>
 <br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			//一般HOG的偵測會比實際的大，所以縮小偵測的範圍<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.x += cvRound(r.width*0.1);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.width = cvRound(r.width*0.8);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.y += cvRound(r.height*0.07);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			r.height = cvRound(r.height*0.8);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			rectangle(_imgMat, r.tl(), r.br(), cv::Scalar(0, 255, 0), 3);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
-<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		cv::imshow("people detection", _imgMat);<br>
-&nbsp; &nbsp;&nbsp; &nbsp;		cv::waitKey(30);<br>
-&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	carPlateSegment(carImg, carImgColor, num);<br>
 &nbsp; &nbsp;	return 0;<br>
 } <br>
  </p>
