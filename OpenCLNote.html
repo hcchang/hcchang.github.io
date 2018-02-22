@@ -157,12 +157,19 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  程序結束前，記得釋放需要的記憶體 clRelease...<br>
 <br>
 輸出結果: <br>
+&nbsp; &nbsp;  底下的圖是加了椒鹽的雜訊，此雜訊用median filter的效果很顯著<br>
+<br>
+<img src='./OpenCL/Result2-0.bmp' alt="opencl" width = "228" height = "228"><br>
+<br>
+&nbsp; &nbsp;  底下的圖是有用GPU來做平行化，可以看的出來時間只用了35ms就處理完<br>
 <br>
 <img src='./OpenCL/Result2-1.jpg' alt="opencl" width = "508" height = "228"><br>
 <br>
+&nbsp; &nbsp;底下的圖是有用一般的CPU來計算，時間用了2500ms幾乎多了70倍的時間<br>
 <br>
 <img src='./OpenCL/Result2-2.jpg' alt="opencl" width = "508" height = "228"><br>
 <br>
+&nbsp; &nbsp;底下的圖是嘗試用OpenCV的iterator看看是否速度比較快，但用了2600ms看來沒太大差異，或許是使用上可能要再優化<br>
 <br>
 <img src='./OpenCL/Result2-3.jpg' alt="opencl" width = "508" height = "228"><br>
 <br>
