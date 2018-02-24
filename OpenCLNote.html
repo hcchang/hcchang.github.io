@@ -147,7 +147,7 @@ int main(int argc, char** argv)<br>
 }<br>
 	    
 <hr>	
-&nbsp; &nbsp;  <h3>章節 2. 將計算的記憶體從Host複製到GPU並實現簡易的MedianFilter範例</h3> <br>
+<h3>章節 2. 將計算的記憶體從Host複製到GPU並實現簡易的MedianFilter範例</h3> <br>
 &nbsp; &nbsp;&nbsp; &nbsp;  遵循章節1部分的初始化步驟完，再來需要將給GPU編譯的code從檔案讀入到char*的buffer，<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  利用cl讀到的buffer來產生program, clCreateProgramWithSource(context, 1, &source, 0, 0)，<br>
 &nbsp; &nbsp;&nbsp; &nbsp;  再來需要將host的buffer建立，和需要GPU建立的記憶體形式，需要讀取，寫入等等...<br>
@@ -535,11 +535,26 @@ __kernel void MedianFilter(__global uchar *srcImageN, __global uchar *srcImageF)
 }<br>
 <br>
 <hr>
-&nbsp; &nbsp;  <h3>章節 3. Android上的OpenCL範例</h3> <br>
+<h3>章節 3. Android上的OpenCL範例</h3> <br>
 &nbsp; &nbsp;&nbsp; &nbsp;  因為手機Android的普及，並且上面高通使用的內建GPU晶片越來越好，所以我們也可以利用上面的GPU幫我們做一點事情<br>
-
+&nbsp; &nbsp;&nbsp; &nbsp;  底下範例我使用的是Sony官方網站提供的用法，所以我沒有修改的code上面還是保留sony的權利，<br>
+&nbsp; &nbsp;&nbsp; &nbsp;  此部分要比較的是硬體上，沒有有使用GPU和沒有使用的差異，所以不建議跑在模擬器上，這邊我是跑在asus zenfone laser 2<br>
 <br>
-&nbsp; &nbsp;範例程式: <br>
+輸出結果: <br>
+&nbsp; &nbsp;第一張圖是原始充滿noise的lena圖片:<br>
+<br>
+<img src='Result1-3_1.jpg' alt="lena" width = "228" height = "451">
+<br>
+&nbsp; &nbsp;第二張圖是經過CPU運算雙邊濾波器的lena圖片，總共花了快20s:<br>
+<br>
+<img src='Result1-3_2.jpg' alt="lena" width = "228" height = "451">
+<br>
+&nbsp; &nbsp;第三張圖是經過OpenCL運算雙邊濾波器的lena圖片，只花了快25ms差了快800倍:<br>
+<br>
+<img src='Result1-3_3.jpg' alt="lena" width = "228" height = "451">
+<br>
+<br>
+範例程式: <br>
 
 </body>
 </html>
