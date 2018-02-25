@@ -18,68 +18,76 @@
 
 <hr>
 <p>
+運行結果: 
+<p>
+&nbsp; &nbsp;我們先偵測影像中是否有特徵點可以使用，藉此比對此特徵點在下張影像中的出現位置，<br>
+&nbsp; &nbsp;藉此尋找像素的位移向量。<br>
+<br>
+<img src='Result5-1_1.jpg' alt="opticalFlow" width = "1458" height = "557">
+<br>
+<hr>
+<p>
 範例程式: 
 <p>
 
-
-<p> #include &#60iostream&#62<br>
+<br>
+#include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
-
+<br>
+<br>
 int main(int argc, char** argv)<br>
 {<br>
 &nbsp; &nbsp;	cv::Mat imgA = cv::imread("Img1.jpg", CV_LOAD_IMAGE_GRAYSCALE);<br>
 &nbsp; &nbsp;	cv::Mat imgB = cv::imread("Img2.jpg", CV_LOAD_IMAGE_GRAYSCALE);<br>
 &nbsp; &nbsp;	<br>
-
-&nbsp; &nbsp;	if (img.data) <br>
+<br>
+&nbsp; &nbsp;	if (!imgA.data || !imgB.data) <br>
 &nbsp; &nbsp;	{ <br>
-&nbsp; &nbsp;		std::cout<<"無法讀取影像" << std::endl; <br>
-&nbsp; &nbsp;		return -1; <br>
+&nbsp; &nbsp;&nbsp; &nbsp;		std::cout<<"無法讀取影像" << std::endl; <br>
+&nbsp; &nbsp;&nbsp; &nbsp;		return -1; <br>
 &nbsp; &nbsp;	} <br>
-
+<br>
 &nbsp; &nbsp;   cv::resize(imgA, imgA, cv::Size(imgA.cols / 2, imgA.rows / 2));<br>
 &nbsp; &nbsp;   cv::resize(imgB, imgB, cv::Size(imgB.cols / 2, imgB.rows / 2));<br>
-
+<br>
 &nbsp; &nbsp;    cv::Size img_sz = imgA.size();<br>
 &nbsp; &nbsp;    int win_size = 10;<br>
 &nbsp; &nbsp;    cv::Mat imgC = cv::imread("Img2.jpg", CV_LOAD_IMAGE_UNCHANGED);<br>
 &nbsp; &nbsp;    cv::resize(imgC, imgC, cv::Size(imgC.cols / 2, imgC.rows / 2));<br>
-
+<br>
 &nbsp; &nbsp;    //檢查圖中是否有好的特徵點值得追蹤<br>
-
+<br>
 &nbsp; &nbsp;	std::vector< cv::Point2f > cornersA, cornersB;<br>
 &nbsp; &nbsp;	const int MAX_CORNERS = 500;<br>
 &nbsp; &nbsp;	cv::goodFeaturesToTrack(imgA, cornersA, MAX_CORNERS,  0.01,5, cv::noArray(), 3, false, 0.04 );<br>
-
+<br>
 &nbsp; &nbsp;	//再取特徵點中更細的subpixel<br>
-
+<br>
 &nbsp; &nbsp;	cv::cornerSubPix(imgA,cornersA, cv::Size(win_size, win_size), cv::Size(-1, -1), <br>
-&nbsp; &nbsp;		cv::TermCriteria(cv::TermCriteria::MAX_ITER | cv::TermCriteria::EPS,20,0.03 ));<br>
-
+&nbsp; &nbsp;	cv::TermCriteria(cv::TermCriteria::MAX_ITER | cv::TermCriteria::EPS,20,0.03 ));<br>
+<br>
 &nbsp; &nbsp;	// 使用 Lucas Kanade 光流算法<br>
 &nbsp; &nbsp;	std::vector<uchar> features_found;<br>
 &nbsp; &nbsp;	cv::calcOpticalFlowPyrLK(imgA, imgB, cornersA, cornersB, features_found, cv::noArray(), cv::Size(win_size * 2 + 1, win_size * 2 + 1),<br>  
 &nbsp; &nbsp;		5, cv::TermCriteria(cv::TermCriteria::MAX_ITER | cv::TermCriteria::EPS, 20, 0.3  ));<br>
-
+<br>
 &nbsp; &nbsp;	//將每個特徵點看是否有找出的對應點，如果有並畫出pixel間移動的距離<br>
-	
+<br>	
 &nbsp; &nbsp;	for (int i = 0; i < static_cast<int>(cornersA.size()); ++i) {<br>
-&nbsp; &nbsp;		if (!features_found[i]) {<br>
-&nbsp; &nbsp;			continue;<br>
-&nbsp; &nbsp;		}<br>
-&nbsp; &nbsp;		cv::line(imgC, cornersA[i], cornersB[i], cv::Scalar(0, 255, 0), 1);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (!features_found[i]) {<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			continue;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		cv::line(imgC, cornersA[i], cornersB[i], cv::Scalar(0, 255, 0), 1);<br>
 &nbsp; &nbsp;	}<br>
-
+<br>
 &nbsp; &nbsp;	cv::imshow("ImageA", imgA);<br>
 &nbsp; &nbsp;	cv::imshow("ImageB", imgB);<br>
 &nbsp; &nbsp;	cv::imshow("LK Optical Flow Example", imgC);<br>
 &nbsp; &nbsp;	cv::waitKey(0);<br>
-
+<br>
 &nbsp; &nbsp;	return 0;<br>
-
-
-&nbsp; &nbsp;	return 0; <br>
+<br>
 } <br>
  </p>
 
