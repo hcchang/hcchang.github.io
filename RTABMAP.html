@@ -4,12 +4,25 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta http-equiv="X-UA-Compatible" content="chrome=1">
 
-<title>G2O Introduction</title>
+<title>RTABMAP Introduction</title>
 </head>
 <body>
 
-<h1>G2O 介紹</h1>
-<p>G2O是個 SLAM很重要的工具，主要在整個路徑的部分優化，迴圈的收斂，甚至函數的擬合</p>
+<h1>RTABMAP 介紹</h1>
+RTABMAP 算是眾多個知名SLAM之一，其中一個最大的優點是他走的是BSD協議，所以可以商業化，<br>
+當然目前已經算是一個蠻大型的專案，所以在底下一一拆解，試著說明已懂得部分。<br>
+在SLAM的部分，不外乎需要<br>
+&nbsp; &nbsp;(1) 追蹤相機姿態 (2D-2D Fundamental, 3D-2D PNP, 3D-3D ICP)<br>
+&nbsp; &nbsp;(2) 建圖 (tsdf, keyFrame)<br>
+&nbsp; &nbsp;(3) local bundle adjustment <br>
+&nbsp; &nbsp;(4) loop closure detection (DBoW)<br>
+&nbsp; &nbsp;(5) close loop error minimization (G2O, GTSAM, ISAM) <br>
+<br>
+在RTABMAP之中，已經包含很多模組的部分，所以會套用上述說的套件，因此要建置RTABMAP，<br>
+必須要其中某一些套件才可以成功建置。<br>
+
+建置完後會有很多的專案，根據不同的dependencies建置的專案數不同，<br>
+執行程式的部分主要是rtabmap的部分，
 
 </body>
 </html>
