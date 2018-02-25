@@ -12,11 +12,26 @@
 <p>2-1創建TrackBar可調值
 </p>
 
+<p>
+程式說明: 
+<p>
+
+<hr>
+<p>
+運行結果: 
+<p>
+&nbsp; &nbsp; 以下我們可以把一張圖的不同RGB channel的比例做調整，下圖把Green的Channel的比例往下調整，<br>
+&nbsp; &nbsp;可以觀察到影像就會偏紫色。<br>
+<img src='Result2-1_1.jpg' alt="trackbar" width = "635" height = "662">
+<hr>
+<p>
+範例程式: 
+<p>
 
 #include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
-                                                                                                <br>
+<br>
 /// Global Variables                                                                                <br>
 const int r_slider_max = 100;                                                                       <br>
 const int g_slider_max = 100;                                                                       <br>
@@ -29,10 +44,10 @@ int b_slider=50;                                                                
 cv::Mat img;                                                                                        <br>
 cv::Mat imgResize;                                                                                  <br>
 cv::Mat imgOut;                                                                                     <br>
-&nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp;                                                                                                     <br>
-void on_trackbarR(int value, void*)                                                                 <br>
-{                                                                                                   <br>
+<br>
+<br>
+void on_trackbarR(int value, void*)<br>
+{<br>
 &nbsp; &nbsp; 	imgOut = imgOut.clone();                                                                          <br>
 &nbsp; &nbsp;                                                                                                     <br>
 &nbsp; &nbsp; 	int tmpValue = 0;                                                                                 <br>
@@ -46,10 +61,10 @@ void on_trackbarR(int value, void*)                                             
 &nbsp; &nbsp;&nbsp;&nbsp; 		}                                                                                               <br>
 &nbsp; &nbsp; 	}                                                                                                 <br>
 &nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp; 	imshow("ImageRGBChannel", imgOut);                                                                <br>
-&nbsp; &nbsp; }                                                                                                   <br>
-&nbsp; &nbsp;                                                                                                     <br>
-void on_trackbarG(int value, void*)                                                                 <br>
+&nbsp; &nbsp; 	cv::imshow("ImageRGBChannel", imgOut);                                                                <br>
+}<br>
+<br>
+void on_trackbarG(int value, void*)<br>
 {                                                                                                   <br>
 &nbsp; &nbsp; 	imgOut = imgOut.clone();                                                                          <br>
 &nbsp; &nbsp;                                                                                                     <br>
@@ -64,10 +79,10 @@ void on_trackbarG(int value, void*)                                             
 &nbsp; &nbsp;&nbsp; &nbsp; 		}                                                                                               <br>
 &nbsp; &nbsp; 	}                                                                                                 <br>
 &nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp; 	imshow("ImageRGBChannel", imgOut);                                                                <br>
+&nbsp; &nbsp; 	cv::imshow("ImageRGBChannel", imgOut);                                                                <br>
 }                                                                                                   <br>
 <br>
-void on_trackbarB(int value, void*)                                                                 <br>
+void on_trackbarB(int value, void*)<br>
 {                                                                                                   <br>
 &nbsp; &nbsp; 	imgOut = imgOut.clone();<br>
 &nbsp; &nbsp; 	int tmpValue = 0;<br>
@@ -81,11 +96,11 @@ void on_trackbarB(int value, void*)                                             
 &nbsp; &nbsp;&nbsp; &nbsp; 		}<br>
 &nbsp; &nbsp; 	}<br>
 &nbsp; &nbsp;                                                                                                     <br>
-&nbsp; &nbsp; 	imshow("ImageRGBChannel", imgOut);                                                                <br>
-}                                                                                                   <br>
-&nbsp; &nbsp;                                                                                                     <br>
-int main(int argc, char** argv)                                                                     <br>
-{                                                                                                   <br>
+&nbsp; &nbsp; 	cv::imshow("ImageRGBChannel", imgOut);                                                                <br>
+}<br>
+<br>
+int main(int argc, char** argv)<br>
+{<br>
 &nbsp; &nbsp; 	/// Read image ( same size, same type )                                                           <br>
 &nbsp; &nbsp; 	img = cv::imread("Image.jpg");                                                                    <br>
 &nbsp; &nbsp;                                                                                                     <br>
