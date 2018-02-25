@@ -12,6 +12,27 @@
 <p>5-2_ORB特徵匹配
 <p>
 
+<p>
+程式說明: 
+<p>
+
+<hr>
+<p>
+運行結果: 
+<p>
+
+&nbsp; &nbsp;藉此尋找像素的位移向量。<br>
+<br>
+&nbsp; &nbsp;在個別兩張不同照片中找到ORB的特徵點，<br>
+<img src='Result5-2_1.jpg' alt="ORB feature" width = "1200" height = "600">
+<br>
+&nbsp; &nbsp;將兩張圖中找到的ORB特徵互相做匹配。<br>
+<img src='Result5-2_2.jpg' alt="ORB feature" width = "1200" height = "600">
+<br>
+<hr>
+<p>
+範例程式: 
+<p>
 
 
 <p> #include &#60iostream&#62<br>
@@ -30,7 +51,7 @@ int main(int argc, char** argv)<br>
 <br>
 &nbsp; &nbsp;	cv::Mat imgFirst = cv::imread("box.png"); <br>
 &nbsp; &nbsp;	cv::Mat imgSecond = cv::imread("box_in_scene.png"); <br>
-
+<br>
 &nbsp; &nbsp;	if(!imgFirst.data || ! imgSecond.data) <br>
 &nbsp; &nbsp;	{<br>
 &nbsp; &nbsp;&nbsp;&nbsp; 	std::cout<<"無法讀取圖檔" << std::endl;<br>
@@ -106,10 +127,10 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;	int OutlinerCount = 0;<br>
 &nbsp; &nbsp;	for (int i = 0; i<ptCount; i++)<br>
 &nbsp; &nbsp;	{<br>
-&nbsp; &nbsp;		if (m_RANSACStatus[i] == 0)<br>
-&nbsp; &nbsp;		{<br>
-&nbsp; &nbsp;&nbsp; &nbsp;			OutlinerCount++;<br>
-&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			if (m_RANSACStatus[i] == 0)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				OutlinerCount++;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
 &nbsp; &nbsp;	}<br>
 &nbsp; &nbsp;	int InlinerCount = ptCount - OutlinerCount;<br>
 &nbsp; &nbsp;	std::cout << "InlinerCount:" << InlinerCount << std::endl;<br>
@@ -133,7 +154,7 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			m_RightInlier[InlinerCount].x = p2.at<float>(i, 0);<br>
 &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			m_RightInlier[InlinerCount].y = p2.at<float>(i, 1);<br>
 &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			m_InlierMatches[InlinerCount].queryIdx = InlinerCount;<br>
-&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;		m_InlierMatches[InlinerCount].trainIdx = InlinerCount;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;		    m_InlierMatches[InlinerCount].trainIdx = InlinerCount;<br>
 &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (m_RightInlier[InlinerCount].x<inlier_minRx) inlier_minRx = m_RightInlier[InlinerCount].x;<br>
 &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			InlinerCount++;<br>
 &nbsp; &nbsp;&nbsp; &nbsp;		}<br>
@@ -150,7 +171,7 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;	cvShowImage("Match features", &IplImage(OutImage));<br>
 &nbsp; &nbsp;	cv::waitKey(0);<br>
 &nbsp; &nbsp;	imshow("Good Matches & Object detection", OutImage);<br>
-
+<br>
 &nbsp; &nbsp;	return 0; <br>
 } <br>
  </p>
