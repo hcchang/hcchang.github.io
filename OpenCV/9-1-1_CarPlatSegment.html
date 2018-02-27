@@ -12,6 +12,27 @@
 <p>9-1-1車牌切割
 <p>
 
+<p>
+程式說明: 
+<p>
+&nbsp; &nbsp;此車牌辨識的專案是參考底下網址matering opencv第五章，並且沿用其中的一些資料庫，
+&nbsp; &nbsp;目前這邊是將其客製化成台灣的車牌，並且為了一一說明程式，將其拆成5個小專說明。
+&nbsp; &nbsp;參考網址: https://github.com/MasteringOpenCV
+<hr>
+<p>
+運行結果: 
+<p>
+&nbsp; &nbsp;這邊我們先對圖像做邊緣偵測，並且將其二值化，二值化完後用closing來連結圖塊，<br>
+&nbsp; &nbsp;利用Contour找出物體輪廓，並判斷pixel數目不足於多少時或高於多少時剃除，保留下來的為mask，<br>
+&nbsp; &nbsp;以此mask再將rgb的圖用洪水法將其圖塊塗滿，並裁剪下來，以便下專案可以做文字切割。<br>
+<br>
+<img src='Result9-1-1_1.jpg' alt="mask" width = "1000" height = "400">
+<br>
+<hr>
+<p>
+範例程式: 
+<p>
+
 #include &#60iostream&#62<br>
 #include &#60opencv2/opencv.hpp&#62<br>
 #include &#60opencv2/highgui/highgui.hpp&#62<br>
