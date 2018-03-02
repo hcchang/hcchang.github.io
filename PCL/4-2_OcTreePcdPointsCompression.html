@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>   	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>4-2_OcTreePcdPointsCompression</title>
+  </head>
+
+<body>
+
+<tr><td align="center"><h1 style="color:blue;">4-2_OcTree點雲壓縮</h1></td></tr>
+
+<p>4-2_OcTree點雲壓縮
+<p>
+
+<p>
+程式說明: 
+<p>
+
+
+<hr>
+<p>
+範例程式: 
+<p>
+<br>
+#include &#60iostream&#62<br>
+#include &#60pcl/io/pcd_io.h&#62<br>
+#include &#60pcl/visualization/cloud_viewer.h&#62<br>
+#include &#60pcl/octree/octree_pointcloud.h&#62<br>
+#include &#60pcl/octree/octree_search.h&#62<br>
+#include &#60pcl/compression/octree_pointcloud_compression.h&#62<br>
+<br>
+int main(int argc, char** argv)<br>
+{<br>
+&nbsp; &nbsp;	pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPoints(new pcl::PointCloud<pcl::PointXYZRGB>);
+&nbsp; &nbsp;	pcl::io::loadPCDFile("points.pcd", *showPoints);
+
+&nbsp; &nbsp;	pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPointsOut(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+&nbsp; &nbsp;	pcl::io::compression_Profiles_e compressionProfile = pcl::io::MED_RES_ONLINE_COMPRESSION_WITH_COLOR;
+&nbsp; &nbsp;	bool showStatistics = true;
+
+&nbsp; &nbsp;	pcl::io::OctreePointCloudCompression<pcl::PointXYZRGB>::Ptr PointCloudEncoder(new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGB>(compressionProfile, showStatistics));
+
+&nbsp; &nbsp;	pcl::io::OctreePointCloudCompression<pcl::PointXYZRGB>::Ptr PointCloudDecoder(new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGB>());
+
+&nbsp; &nbsp;	std::stringstream compressedData;
+
+&nbsp; &nbsp;	PointCloudEncoder->encodePointCloud(showPoints, compressedData);
+
+&nbsp; &nbsp;	PointCloudDecoder->decodePointCloud(compressedData, showPointsOut);
+
+&nbsp; &nbsp;	pcl::visualization::CloudViewer viewer("Clouds");
+
+&nbsp; &nbsp;	viewer.showCloud(showPointsOut);
+
+&nbsp; &nbsp;	while (!viewer.wasStopped()) 
+&nbsp; &nbsp;	{
+&nbsp; &nbsp;&nbsp; &nbsp;		//因為這邊是和visualization的視窗同步跑，所以可以在之中執行一些處理
+&nbsp; &nbsp;	}
+	
+&nbsp; &nbsp;	return 0;<br>
+}<br>
+<br>
+</body>
+</html>

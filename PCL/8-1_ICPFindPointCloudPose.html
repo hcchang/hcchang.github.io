@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>   	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>8-1_ICPFindPointCloudPose</title>
+  </head>
+
+<body>
+
+<tr><td align="center"><h1 style="color:blue;">8-1_利用ICP找出點群位姿</h1></td></tr>
+
+<p>8-1_利用ICP找出點群位姿
+<p>
+
+<p>
+程式說明: 
+<p>
+
+
+<hr>
+<p>
+範例程式: 
+<p>
+<br>
+#include &#60iostream#62<br>
+#include &#60pcl/io/pcd_io.h#62<br>
+#include &#60pcl/visualization/cloud_viewer.h#62<br>
+#include &#60pcl/common/transforms.h#62<br>
+#include &#60pcl/registration/icp.h#62<br>
+<br>
+int main(int argc, char** argv)<br>
+{<br>
+&nbsp; &nbsp;   pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPointsSrc(new pcl::PointCloud<pcl::PointXYZRGB>);<br>
+&nbsp; &nbsp;	pcl::io::loadPCDFile("points.pcd", *showPointsSrc);<br>
+<br>
+&nbsp; &nbsp;	pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPointsTar(new pcl::PointCloud<pcl::PointXYZRGB>);<br>
+<br>
+&nbsp; &nbsp;	Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();<br>
+<br>
+&nbsp; &nbsp;	float theta = M_PI / 18; // 10 degree, The angle of rotation in radians<br>
+&nbsp; &nbsp;	transform(0, 0) = cos(theta);<br>
+&nbsp; &nbsp;	transform(0, 1) = -sin(theta);<br>
+&nbsp; &nbsp;	transform(1, 0) = sin(theta);<br>
+&nbsp; &nbsp;	transform(1, 1) = cos(theta);<br>
+<br>
+&nbsp; &nbsp;	transform(0, 3) = 0.5; //x<br>
+&nbsp; &nbsp;	transform(1, 3) = 0.5; //y<br>
+&nbsp; &nbsp;	transform(2, 3) = 0.5; //z<br>
+<br>
+&nbsp; &nbsp;	std::cout << "transform: " << std::endl << transform << std::endl;<br>
+<br>
+&nbsp; &nbsp;	pcl::transformPointCloud(*showPointsSrc, *showPointsTar, transform);<br>
+<br>
+&nbsp; &nbsp;	pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;<br>
+<br>
+&nbsp; &nbsp;	icp.setInputCloud(showPointsSrc);<br>
+&nbsp; &nbsp;	icp.setInputTarget(showPointsTar);<br>
+&nbsp; &nbsp;	pcl::PointCloud<pcl::PointXYZRGB> Final;<br>
+&nbsp; &nbsp;	icp.align(Final);<br>
+&nbsp; &nbsp;	std::cout << "has converged:" << icp.hasConverged() << std::endl <<  " score: " << icp.getFitnessScore() << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "icp get transformation: " << std::endl << icp.getFinalTransformation() << std::endl;<br>
+<br>	
+&nbsp; &nbsp;	return 0;<br>
+}<br>
+<br>
+</body>
+</html>
