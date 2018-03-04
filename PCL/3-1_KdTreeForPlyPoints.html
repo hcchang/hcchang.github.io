@@ -30,14 +30,14 @@
 <br>
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;    pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPoints(new pcl::PointCloud<pcl::PointXYZRGB>);<br>
+&nbsp; &nbsp;   pcl::PointCloud&#60pcl::PointXYZRGB&#62::Ptr showPoints(new pcl::PointCloud&#60pcl::PointXYZRGB&#62);<br>
 &nbsp; &nbsp;	pcl::io::loadPLYFile("Test.ply", *showPoints);<br>
 <br>
 &nbsp; &nbsp;	pcl::visualization::CloudViewer viewer("Clouds");<br>
 <br>
 &nbsp; &nbsp;	viewer.showCloud(showPoints);<br>
 <br>
-&nbsp; &nbsp;	pcl::KdTreeFLANN<pcl::PointXYZRGB> kdtree;<br>
+&nbsp; &nbsp;	pcl::KdTreeFLANN&#60pcl::PointXYZRGB&#62 kdtree;<br>
 <br>
 &nbsp; &nbsp;	kdtree.setInputCloud(showPoints);<br>
 <br>
@@ -45,8 +45,8 @@ int main(int argc, char** argv)<br>
 <br>
 &nbsp; &nbsp;	int K = 20;<br>
 <br>
-&nbsp; &nbsp;	std::vector<int> pointIdxNKNSearch(K);<br>
-&nbsp; &nbsp;	std::vector<float> pointNKNSquaredDistance(K);<br>
+&nbsp; &nbsp;	std::vector<int&#62 pointIdxNKNSearch(K);<br>
+&nbsp; &nbsp;	std::vector<float&#62 pointNKNSquaredDistance(K);<br>
 <br>
 &nbsp; &nbsp;	//假設我們想找距離原點最近的20個點<br>
 <br>
@@ -69,8 +69,8 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;	}<br>
 <br>
 &nbsp; &nbsp;	//以半徑當作搜索條件<br>
-&nbsp; &nbsp;	std::vector<int> pointIdxRadiusSearch;<br>
-&nbsp; &nbsp;	std::vector<float> pointRadiusSquaredDistance;<br>
+&nbsp; &nbsp;	std::vector&#60int&#62 pointIdxRadiusSearch;<br>
+&nbsp; &nbsp;	std::vector&#60float&#62 pointRadiusSquaredDistance;<br>
 <br>
 &nbsp; &nbsp;	float radius = 0.5; //0.5公尺附近<br>
 <br>
@@ -79,13 +79,13 @@ int main(int argc, char** argv)<br>
 &nbsp; &nbsp;		<< " " << searchPoint.z<br>
 &nbsp; &nbsp;		<< ") with radius=" << radius << std::endl;<br>
 <br>
-&nbsp; &nbsp;	if (kdtree.radiusSearch(searchPoint, radius, pointIdxRadiusSearch, pointRadiusSquaredDistance)<br> > 0)
+&nbsp; &nbsp;	if (kdtree.radiusSearch(searchPoint, radius, pointIdxRadiusSearch, pointRadiusSquaredDistance) > 0) <br>
 &nbsp; &nbsp;	{<br>
 &nbsp; &nbsp;&nbsp; &nbsp;		for (size_t i = 0; i < pointIdxRadiusSearch.size(); ++i)<br>
-&nbsp; &nbsp;&nbsp; &nbsp;			std::cout << "    " << showPoints->points[pointIdxRadiusSearch[i]].x<br>
-&nbsp; &nbsp;&nbsp; &nbsp;			<< " " << showPoints->points[pointIdxRadiusSearch[i]].y<br>
-&nbsp; &nbsp;&nbsp; &nbsp;			<< " " << showPoints->points[pointIdxRadiusSearch[i]].z<br>
-&nbsp; &nbsp;&nbsp; &nbsp;			<< " (squared distance: " << pointRadiusSquaredDistance[i] << ")" << std::endl;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			std::cout << "    " << showPoints->points[pointIdxRadiusSearch[i]].x<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			<< " " << showPoints->points[pointIdxRadiusSearch[i]].y<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			<< " " << showPoints->points[pointIdxRadiusSearch[i]].z<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			<< " (squared distance: " << pointRadiusSquaredDistance[i] << ")" << std::endl;<br>
 &nbsp; &nbsp;	}<br>
 <br>
 &nbsp; &nbsp;	while (!viewer.wasStopped()) <br>

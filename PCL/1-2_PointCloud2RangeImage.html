@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>   	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>1-2_PointCloud2RangeImage</title>
+  </head>
+
+<body>
+
+<tr><td align="center"><h1 style="color:blue;">1-2將點雲轉成深度圖檔</h1></td></tr>
+
+<p>1-2將點雲轉成深度圖檔
+<p>
+
+<p>
+程式說明: 
+<p>
+
+
+<hr>
+<p>
+範例程式: 
+<p>
+<br>
+#include &#60pcl/range_image/range_image.h&#62<br>
+#include &#60pcl/io/pcd_io.h&#62<br>
+#include &#60opencv2/opencv.hpp&#62<br>
+#include &#60opencv2/highgui/highgui.hpp&#62<br>
+#include &#60iostream&#62<br>
+#include &#60pcl/visualization/common/float_image_utils.h&#62<br>
+<br>
+#ifndef INFINITY<br>
+#define INFINITY HUGE_VAL<br>
+#endif<br>
+<br>
+#ifndef NAN<br>
+#define NAN 0xffc00000<br>
+#endif<br>
+<br>
+<br>
+int main(int argc, char** argv)<br>
+{<br>
+<br>
+&nbsp; &nbsp;	pcl::PointCloud&#60pcl::PointXYZRGB&#62::Ptr pointCloud(new pcl::PointCloud&#60pcl::PointXYZRGB&#62);<br>
+&nbsp; &nbsp;	pcl::io::loadPCDFile("five_people.pcd", *pointCloud);<br>
+<br>
+<br>
+&nbsp; &nbsp;	// 創建深度圖時，需要決定角度的解析度<br>
+&nbsp; &nbsp;	float angularResolution = (float)(0.1f * (M_PI / 180.0f));  //   1.0 degree in radians<br>
+<br>
+&nbsp; &nbsp;	//模擬深度相機最大寬的取像角度<br>
+&nbsp; &nbsp;	float maxAngleWidth = (float)(72.0f * (M_PI / 180.0f));  // 72.0 degree in radians <br>
+<br>
+&nbsp; &nbsp;	//模擬深度相機最大高的取像角度<br>
+&nbsp; &nbsp;	float maxAngleHeight = (float)(54.0f * (M_PI / 180.0f));  // 54.0 degree in radians<br>
+<br>
+&nbsp; &nbsp;	Eigen::Affine3f sensorPose = (Eigen::Affine3f)Eigen::Translation3f(0.0f, 0.0f, 0.0f);<br>
+&nbsp; &nbsp;	pcl::RangeImage::CoordinateFrame coordinate_frame = pcl::RangeImage::CAMERA_FRAME;<br>
+&nbsp; &nbsp;	float noiseLevel = 0.00;<br>
+&nbsp; &nbsp;	float minRange = 0.0f;<br>
+&nbsp; &nbsp;	int borderSize = 1;<br>
+<br>	
+&nbsp; &nbsp;	pcl::RangeImage rangeImage;<br>
+&nbsp; &nbsp;	rangeImage.createFromPointCloud(*pointCloud, angularResolution, maxAngleWidth, maxAngleHeight,<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		sensorPose, coordinate_frame, noiseLevel, minRange, borderSize);<br>
+<br>
+&nbsp; &nbsp;	float min;<br>
+&nbsp; &nbsp;	float max;<br>
+&nbsp; &nbsp;	rangeImage.getMinMaxRanges(min, max);<br>
+&nbsp; &nbsp;	float min_max_range = max - min;<br>
+<br>
+&nbsp; &nbsp;	std::cout << "min: " << min << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "max: " << max << std::endl;<br>
+<br>
+&nbsp; &nbsp;	int width = rangeImage.width;<br>
+&nbsp; &nbsp;	int height = rangeImage.height;<br>
+<br>
+&nbsp; &nbsp;	std::cout << "width: " << width << std::endl;<br>
+&nbsp; &nbsp;	std::cout << "height: " << height << std::endl;<br>
+<br>
+&nbsp; &nbsp;	cv::Mat rangeImgCV = cv::Mat(cv::Size(width,height), CV_32FC1, cv::Scalar(0));<br>
+&nbsp; &nbsp;	cv::Mat rangeImgCV8U = cv::Mat(cv::Size(width, height), CV_8UC3, cv::Scalar(0));<br>
+<br>	
+<br>
+&nbsp; &nbsp;	unsigned char r, g, b;<br>
+&nbsp; &nbsp;	for (int y = 0; y < height; y++)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		for (int x = 0; x<width; x++)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			pcl::PointWithRange rangePt = rangeImage.getPoint(x, y);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (rangePt.range == INFINITY || rangePt.range == -INFINITY || rangePt.range == NAN)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				pcl::visualization::FloatImageUtils::getColorForFloat(rangePt.range, r, g, b);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				float value = (rangePt.range - min) / min_max_range;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				pcl::visualization::FloatImageUtils::getColorForFloat(value, r, g, b);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			}<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			rangeImgCV8U.at<cv::Vec3b>(y, x)[0] = b;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			rangeImgCV8U.at<cv::Vec3b>(y, x)[1] = g;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			rangeImgCV8U.at<cv::Vec3b>(y, x)[2] = r;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	cv::imwrite("range.png", rangeImgCV8U);<br>
+&nbsp; &nbsp;	std::cout << rangeImage << "\n";<br>
+&nbsp; &nbsp;	return 0;<br>
+}<br>
+<br>
+</body>
+</html>

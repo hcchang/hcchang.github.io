@@ -23,12 +23,12 @@
 <p>
 <br>
 #include &#60iostream&#62<br>
-#include &#60pcl/io/pcd_io.h#62<br>
-#include &#60pcl/visualization/cloud_viewer.h#62<br>
+#include &#60pcl/io/pcd_io.h&#62<br>
+#include &#60pcl/visualization/cloud_viewer.h&#62<br>
 <br>
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;	pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPoints(new pcl::PointCloud<pcl::PointXYZRGB>);<br>
+&nbsp; &nbsp;	pcl::PointCloud&#60pcl::PointXYZRGB&#62::Ptr showPoints(new pcl::PointCloud&#60pcl::PointXYZRGB&#62);<br>
 &nbsp; &nbsp;	pcl::io::loadPCDFile("points.pcd", *showPoints);<br>
 <br>
 &nbsp; &nbsp;	pcl::visualization::CloudViewer viewer("Clouds");<br>
