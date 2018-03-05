@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>   	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>9-1_RANSACExample</title>
+  </head>
+
+<body>
+
+<tr><td align="center"><h1 style="color:blue;">9-1_采樣一致性過濾點雲</h1></td></tr>
+
+<p>9-1_采樣一致性過濾點雲
+<p>
+
+<p>
+程式說明: 
+<p>
+
+
+<hr>
+<p>
+範例程式: 
+<p>
+<br>
+<br>
+#include &#60iostream&#62<br>
+#include &#60pcl/console/parse.h&#62<br>
+#include &#60pcl/filters/extract_indices.h&#62<br>
+#include &#60pcl/io/pcd_io.h&#62<br>
+#include &#60pcl/point_types.h&#62<br>
+#include &#60pcl/sample_consensus/ransac.h&#62<br>
+#include &#60pcl/sample_consensus/sac_model_plane.h&#62<br>
+#include &#60pcl/sample_consensus/sac_model_sphere.h&#62<br>
+#include &#60pcl/visualization/pcl_visualizer.h&#62<br>
+#include &#60boost/thread/thread.hpp&#62<br>
+<br>
+boost::shared_ptr&#60pcl::visualization::PCLVisualizer&#62 simpleVis(pcl::PointCloud&#60pcl::PointXYZ&#62::ConstPtr cloud)<br>
+{<br>
+&nbsp; &nbsp;	// --------------------------------------------<br>
+&nbsp; &nbsp;	// 回傳viewer的指標，表示內部顯示的結果更新<br>
+&nbsp; &nbsp;	// --------------------------------------------<br>
+&nbsp; &nbsp;	boost::shared_ptr&#60pcl::visualization::PCLVisualizer&#62 viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));<br>
+&nbsp; &nbsp;	viewer->setBackgroundColor(0, 0, 0);<br>
+&nbsp; &nbsp;	viewer->addPointCloud&#60pcl::PointXYZ&#62(cloud, "sample cloud");<br>
+&nbsp; &nbsp;	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");<br>
+&nbsp; &nbsp;	viewer->initCameraParameters();<br>
+&nbsp; &nbsp;	return (viewer);<br>
+}<br>
+<br>
+int main(int argc, char** argv)<br>
+{<br>
+&nbsp; &nbsp;	// 點雲的初始化<br>
+&nbsp; &nbsp;	pcl::PointCloud&#60pcl::PointXYZ&#62::Ptr cloud(new pcl::PointCloud&#60pcl::PointXYZ&#62);<br>
+&nbsp; &nbsp;	pcl::PointCloud&#60pcl::PointXYZ&#62::Ptr final(new pcl::PointCloud&#60pcl::PointXYZ&#62);<br>
+<br>
+&nbsp; &nbsp;	// 先產生3000的點為範例<br>
+&nbsp; &nbsp;	cloud->width = 3000;<br>
+&nbsp; &nbsp;	cloud->height = 1;<br>
+&nbsp; &nbsp;	cloud->is_dense = false;<br>
+&nbsp; &nbsp;	cloud->points.resize(cloud->width * cloud->height);<br>
+&nbsp; &nbsp;	for (size_t i = 0; i < cloud->points.size(); ++i)<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		if (pcl::console::find_argument(argc, argv, "-s") >= 0 || pcl::console::find_argument(argc, argv, "-sf") >= 0)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cloud->points[i].x = 1 * rand() / (RAND_MAX + 1.0); //(隨機數)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cloud->points[i].y = 1 * rand() / (RAND_MAX + 1.0); //(隨機數)<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (i % 5 == 0)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				cloud->points[i].z = 1 * rand() / (RAND_MAX + 1.0); <br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			else if (i % 2 == 0)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				cloud->points[i].z = sqrt(1 - (cloud->points[i].x * cloud->points[i].x)  //x^2 + y^2 + z^2 = 1 (上圓)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;            	- (cloud->points[i].y * cloud->points[i].y));<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				cloud->points[i].z = -sqrt(1 - (cloud->points[i].x * cloud->points[i].x)  //x^2 + y^2 + z^2 = 1 (下圓)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				- (cloud->points[i].y * cloud->points[i].y)); <br>
+&nbsp; &nbsp;&nbsp; &nbsp;  	}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cloud->points[i].x = 1 * rand() / (RAND_MAX + 1.0); //(隨機數)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			cloud->points[i].y = 1 * rand() / (RAND_MAX + 1.0); //(隨機數)<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			if (i % 2 == 0)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				cloud->points[i].z = 1 * rand() / (RAND_MAX + 1.0); // 隨機點<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;			else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;				cloud->points[i].z = -1 * (cloud->points[i].x + cloud->points[i].y); // x+y+z = 0;<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		}<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	std::vector<int> inliers;<br>
+<br>
+&nbsp; &nbsp;	// 此部分有平面的model 和球形的model<br>
+&nbsp; &nbsp;	pcl::SampleConsensusModelSphere&#60pcl::PointXYZ&#62::Ptr<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		model_s(new pcl::SampleConsensusModelSphere&#60pcl::PointXYZ&#62(cloud));<br>
+&nbsp; &nbsp;	pcl::SampleConsensusModelPlane&#60pcl::PointXYZ&#62::Ptr<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		model_p(new pcl::SampleConsensusModelPlane&#60pcl::PointXYZ&#62(cloud));<br>
+&nbsp; &nbsp;	if (pcl::console::find_argument(argc, argv, "-f") >= 0) //平面<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		pcl::RandomSampleConsensus&#60pcl::PointXYZ> ransac(model_p);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		ransac.setDistanceThreshold(0.01);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		ransac.computeModel();<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		ransac.getInliers(inliers);<br>
+&nbsp; &nbsp;	}<br>
+&nbsp; &nbsp;	else if (pcl::console::find_argument(argc, argv, "-sf") >= 0) //球形<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		pcl::RandomSampleConsensus&#60pcl::PointXYZ&#62 ransac(model_s);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		ransac.setDistanceThreshold(0.01);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		ransac.computeModel();<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		ransac.getInliers(inliers);<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	// 將在inlinear的點雲複製出來<br>
+&nbsp; &nbsp;	pcl::copyPointCloud&#60pcl::PointXYZ&#62(*cloud, inliers, *final);<br>
+<br>
+&nbsp; &nbsp;	// 建立視覺化的物件<br>
+&nbsp; &nbsp;	boost::shared_ptr&#60pcl::visualization::PCLVisualizer&#62 viewer;<br>
+<br>
+&nbsp; &nbsp;	if (pcl::console::find_argument(argc, argv, "-f") >= 0 || pcl::console::find_argument(argc, argv, "-sf") >= 0)<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		viewer = simpleVis(final);<br>
+&nbsp; &nbsp;	else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		viewer = simpleVis(cloud);<br>
+<br>
+<br>
+&nbsp; &nbsp;	while (!viewer->wasStopped())<br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		viewer->spinOnce(100);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		boost::this_thread::sleep(boost::posix_time::microseconds(100000));<br>
+&nbsp; &nbsp;	}<br>
+<br>
+&nbsp; &nbsp;	return 0;<br>
+}<br>
+<br>
+</body>
+</html>

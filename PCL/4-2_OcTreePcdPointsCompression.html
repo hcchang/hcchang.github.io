@@ -31,33 +31,33 @@
 <br>
 int main(int argc, char** argv)<br>
 {<br>
-&nbsp; &nbsp;	pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPoints(new pcl::PointCloud<pcl::PointXYZRGB>);
-&nbsp; &nbsp;	pcl::io::loadPCDFile("points.pcd", *showPoints);
-
-&nbsp; &nbsp;	pcl::PointCloud<pcl::PointXYZRGB>::Ptr showPointsOut(new pcl::PointCloud<pcl::PointXYZRGB>);
-
-&nbsp; &nbsp;	pcl::io::compression_Profiles_e compressionProfile = pcl::io::MED_RES_ONLINE_COMPRESSION_WITH_COLOR;
-&nbsp; &nbsp;	bool showStatistics = true;
-
-&nbsp; &nbsp;	pcl::io::OctreePointCloudCompression<pcl::PointXYZRGB>::Ptr PointCloudEncoder(new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGB>(compressionProfile, showStatistics));
-
-&nbsp; &nbsp;	pcl::io::OctreePointCloudCompression<pcl::PointXYZRGB>::Ptr PointCloudDecoder(new pcl::io::OctreePointCloudCompression<pcl::PointXYZRGB>());
-
-&nbsp; &nbsp;	std::stringstream compressedData;
-
-&nbsp; &nbsp;	PointCloudEncoder->encodePointCloud(showPoints, compressedData);
-
-&nbsp; &nbsp;	PointCloudDecoder->decodePointCloud(compressedData, showPointsOut);
-
-&nbsp; &nbsp;	pcl::visualization::CloudViewer viewer("Clouds");
-
-&nbsp; &nbsp;	viewer.showCloud(showPointsOut);
-
-&nbsp; &nbsp;	while (!viewer.wasStopped()) 
-&nbsp; &nbsp;	{
-&nbsp; &nbsp;&nbsp; &nbsp;		//因為這邊是和visualization的視窗同步跑，所以可以在之中執行一些處理
-&nbsp; &nbsp;	}
-	
+&nbsp; &nbsp;	pcl::PointCloud&#60pcl::PointXYZRGB&#62::Ptr showPoints(new pcl::PointCloud&#60pcl::PointXYZRGB&#62);<br>
+&nbsp; &nbsp;	pcl::io::loadPCDFile("points.pcd", *showPoints);<br>
+<br>
+&nbsp; &nbsp;	pcl::PointCloud&#60pcl::PointXYZRGB&#62::Ptr showPointsOut(new pcl::PointCloud&#60pcl::PointXYZRGB&#62);<br>
+<br>
+&nbsp; &nbsp;	pcl::io::compression_Profiles_e compressionProfile = pcl::io::MED_RES_ONLINE_COMPRESSION_WITH_COLOR;<br>
+&nbsp; &nbsp;	bool showStatistics = true;<br>
+<br>
+&nbsp; &nbsp;	pcl::io::OctreePointCloudCompression&#60pcl::PointXYZRGB&#62::Ptr PointCloudEncoder(new pcl::io::OctreePointCloudCompression&#60pcl::PointXYZRGB&#62(compressionProfile, showStatistics));<br>
+<br>
+&nbsp; &nbsp;	pcl::io::OctreePointCloudCompression&#60pcl::PointXYZRGB&#62::Ptr PointCloudDecoder(new pcl::io::OctreePointCloudCompression&#60pcl::PointXYZRGB&#62());<br>
+<br>
+&nbsp; &nbsp;	std::stringstream compressedData;<br>
+<br>
+&nbsp; &nbsp;	PointCloudEncoder->encodePointCloud(showPoints, compressedData);<br>
+<br>
+&nbsp; &nbsp;	PointCloudDecoder->decodePointCloud(compressedData, showPointsOut);<br>
+<br>
+&nbsp; &nbsp;	pcl::visualization::CloudViewer viewer("Clouds");<br>
+<br>
+&nbsp; &nbsp;	viewer.showCloud(showPointsOut);<br>
+<br>
+&nbsp; &nbsp;	while (!viewer.wasStopped()) <br>
+&nbsp; &nbsp;	{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;		//因為這邊是和visualization的視窗同步跑，所以可以在之中執行一些處理<br>
+&nbsp; &nbsp;	}<br>
+<br>	
 &nbsp; &nbsp;	return 0;<br>
 }<br>
 <br>
